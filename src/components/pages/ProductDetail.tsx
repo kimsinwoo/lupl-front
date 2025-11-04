@@ -142,22 +142,28 @@ export function ProductDetail() {
       setIsLoadingReviews(true);
       const response: any = await reviewService.getProductReviews(id);
       
+      // API 응답 구조: { success: true, data: Review[] }
       let reviewsData: Review[] = [];
       
-      if (Array.isArray(response)) {
+      if (response && response.success && Array.isArray(response.data)) {
+        // 정상 응답: { success: true, data: [...] }
+        reviewsData = response.data;
+      } else if (Array.isArray(response)) {
+        // 배열이 직접 반환된 경우
         reviewsData = response;
-      } else if (response && typeof response === 'object') {
-        if (Array.isArray(response.data)) {
-          reviewsData = response.data;
-        } else if (response.data && Array.isArray(response.data.data)) {
-          reviewsData = response.data.data;
-        }
+      } else if (response && typeof response === 'object' && Array.isArray(response.data)) {
+        // data 필드가 배열인 경우
+        reviewsData = response.data;
       }
       
       setReviews(reviewsData || []);
       
+      // 평균 별점 계산
       if (reviewsData && reviewsData.length > 0) {
-        const sum = reviewsData.reduce((acc: number, review: Review) => acc + (review.rating || 0), 0);
+        const sum = reviewsData.reduce((acc: number, review: Review) => {
+          const rating = typeof review.rating === 'number' ? review.rating : 0;
+          return acc + rating;
+        }, 0);
         const avg = sum / reviewsData.length;
         setAverageRating(Number(avg.toFixed(1)));
       } else {
@@ -356,17 +362,20 @@ export function ProductDetail() {
                 <span className="text-white/50 text-sm">{language === 'ko' ? '리뷰를 불러오는 중...' : 'Loading reviews...'}</span>
               ) : reviews.length > 0 && averageRating > 0 ? (
                 <>
-                  <div className="flex items-center gap-1">
-                    {[1, 2, 3, 4, 5].map((rating) => (
-                      <Star
-                        key={rating}
-                        className={`w-5 h-5 ${
-                          rating <= Math.round(averageRating)
-                            ? 'fill-yellow-400 text-yellow-400'
-                            : 'text-white/30'
-                        }`}
-                      />
-                    ))}
+                  <div className="flex items-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((starIndex) => {
+                      const roundedRating = Math.round(averageRating);
+                      return (
+                        <Star
+                          key={starIndex}
+                          className={`w-5 h-5 transition-colors ${
+                            starIndex <= roundedRating
+                              ? 'fill-yellow-400 text-yellow-400'
+                              : 'fill-none text-white/30'
+                          }`}
+                        />
+                      );
+                    })}
                   </div>
                   <span className="text-white/70 text-sm">
                     ({averageRating.toFixed(1)}) {reviews.length}{language === 'ko' ? '개 리뷰' : ' reviews'}
@@ -374,11 +383,11 @@ export function ProductDetail() {
                 </>
               ) : (
                 <>
-                  <div className="flex items-center gap-1">
-                    {[1, 2, 3, 4, 5].map((rating) => (
+                  <div className="flex items-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((starIndex) => (
                       <Star
-                        key={rating}
-                        className="w-5 h-5 text-white/30"
+                        key={starIndex}
+                        className="w-5 h-5 fill-none text-white/30"
                       />
                     ))}
                   </div>
@@ -491,36 +500,45 @@ export function ProductDetail() {
                 {language === 'ko' ? '아직 작성된 리뷰가 없습니다.' : 'No reviews yet.'}
               </div>
             ) : (
-              reviews.map((review) => (
-                <div
-                  key={review.id}
-                  className="border-b border-white/10 pb-4 last:border-b-0"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center">
-                        {[1, 2, 3, 4, 5].map((rating) => (
-                          <Star
-                            key={rating}
-                            className={`w-4 h-4 ${
-                              rating <= review.rating
-                                ? 'fill-yellow-400 text-yellow-400'
-                                : 'text-white/30'
-                            }`}
-                          />
-                        ))}
+              reviews.map((review) => {
+                // rating 값을 안전하게 숫자로 변환 (1-5 범위)
+                const ratingValue = typeof review.rating === 'number' 
+                  ? Math.max(1, Math.min(5, review.rating)) 
+                  : 0;
+                
+                return (
+                  <div
+                    key={review.id}
+                    className="border-b border-white/10 pb-4 last:border-b-0"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-0.5">
+                          {[1, 2, 3, 4, 5].map((starIndex) => (
+                            <Star
+                              key={starIndex}
+                              className={`w-4 h-4 transition-colors ${
+                                starIndex <= ratingValue
+                                  ? 'fill-yellow-400 text-yellow-400'
+                                  : 'fill-none text-white/30'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-white/70 text-sm">
+                          {review.userName || (language === 'ko' ? '익명' : 'Anonymous')}
+                        </span>
                       </div>
-                      <span className="text-white/70 text-sm">
-                        {review.userName || (language === 'ko' ? '익명' : 'Anonymous')}
+                      <span className="text-white/50 text-xs">
+                        {new Date(review.createdAt).toLocaleDateString()}
                       </span>
                     </div>
-                    <span className="text-white/50 text-xs">
-                      {new Date(review.createdAt).toLocaleDateString()}
-                    </span>
+                    {review.comment && (
+                      <p className="text-white/90 text-sm leading-relaxed mt-2">{review.comment}</p>
+                    )}
                   </div>
-                  <p className="text-white/90 text-sm leading-relaxed">{review.comment}</p>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </DialogContent>
