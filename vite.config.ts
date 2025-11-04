@@ -78,7 +78,7 @@
               '@radix-ui/react-tabs',
               '@radix-ui/react-tooltip',
             ],
-            'form-vendor': ['react-hook-form', 'zod'],
+            'form-vendor': ['react-hook-form'],
             'utils-vendor': ['axios', 'clsx', 'tailwind-merge'],
             'chart-vendor': ['recharts'],
           },
