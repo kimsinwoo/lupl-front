@@ -23,7 +23,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onNa
     if (onClick) {
       onClick();
     } else if (onNavigate) {
-      onNavigate('product', product.id);
+      onNavigate(`shop/${product.id}`, product.id);
     }
   };
 
