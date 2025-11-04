@@ -253,18 +253,18 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
     <div className="min-h-screen bg-gray-50 pt-24 sm:pt-32 pb-16 sm:pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-16">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 sm:mb-16 gap-4">
           <div>
-            <h1 className="text-3xl tracking-[0.2em] mb-2">ADMIN DASHBOARD</h1>
-            <p className="text-sm text-muted-foreground tracking-[0.15em]">
+            <h1 className="text-2xl sm:text-3xl tracking-[0.2em] mb-2">ADMIN DASHBOARD</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground tracking-[0.15em]">
               Manage your KITAE store
             </p>
           </div>
-          <div className="flex gap-4 items-center">
+          <div className="flex gap-2 sm:gap-4 items-center w-full sm:w-auto">
             <Button
               onClick={refreshData}
               variant="outline"
-              className="tracking-[0.15em]"
+              className="tracking-[0.15em] text-xs sm:text-sm flex-1 sm:flex-initial"
               disabled={isLoading}
             >
               {isLoading ? 'Refreshing...' : 'Refresh'}
@@ -272,98 +272,98 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
             <Button
               onClick={handleLogout}
               variant="outline"
-              className="tracking-[0.15em] gap-2"
+              className="tracking-[0.15em] gap-2 text-xs sm:text-sm flex-1 sm:flex-initial"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-3 h-3 sm:w-4 sm:h-4" />
               LOGOUT
             </Button>
           </div>
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-          <div className="bg-white p-8 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <DollarSign className="w-8 h-8 text-green-600" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12">
+          <div className="bg-white p-4 sm:p-6 md:p-8 shadow-sm">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <DollarSign className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-green-600" />
             </div>
-            <p className="text-sm text-muted-foreground tracking-[0.1em] mb-2">TOTAL REVENUE</p>
-            <p className="text-2xl tracking-[0.1em]">${totalRevenue.toLocaleString()}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground tracking-[0.1em] mb-2">TOTAL REVENUE</p>
+            <p className="text-xl sm:text-2xl tracking-[0.1em]">${totalRevenue.toLocaleString()}</p>
           </div>
 
-          <div className="bg-white p-8 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <ShoppingCart className="w-8 h-8 text-blue-600" />
+          <div className="bg-white p-4 sm:p-6 md:p-8 shadow-sm">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <ShoppingCart className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-blue-600" />
             </div>
-            <p className="text-sm text-muted-foreground tracking-[0.1em] mb-2">TOTAL ORDERS</p>
-            <p className="text-2xl tracking-[0.1em]">{orders.length}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground tracking-[0.1em] mb-2">TOTAL ORDERS</p>
+            <p className="text-xl sm:text-2xl tracking-[0.1em]">{orders.length}</p>
           </div>
 
-          <div className="bg-white p-8 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <Package className="w-8 h-8 text-purple-600" />
+          <div className="bg-white p-4 sm:p-6 md:p-8 shadow-sm">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <Package className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-purple-600" />
             </div>
-            <p className="text-sm text-muted-foreground tracking-[0.1em] mb-2">PRODUCTS</p>
-            <p className="text-2xl tracking-[0.1em]">{totalProducts}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground tracking-[0.1em] mb-2">PRODUCTS</p>
+            <p className="text-xl sm:text-2xl tracking-[0.1em]">{totalProducts}</p>
           </div>
 
-          <div className="bg-white p-8 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <TrendingUp className="w-8 h-8 text-orange-600" />
+          <div className="bg-white p-4 sm:p-6 md:p-8 shadow-sm">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <TrendingUp className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-orange-600" />
             </div>
-            <p className="text-sm text-muted-foreground tracking-[0.1em] mb-2">PENDING ORDERS</p>
-            <p className="text-2xl tracking-[0.1em]">{pendingOrders}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground tracking-[0.1em] mb-2">PENDING ORDERS</p>
+            <p className="text-xl sm:text-2xl tracking-[0.1em]">{pendingOrders}</p>
           </div>
         </div>
 
         {/* Main Content Tabs */}
-        <Tabs defaultValue="products" className="space-y-8">
+        <Tabs defaultValue="products" className="space-y-6 sm:space-y-8">
           <TabsList className="grid w-full grid-cols-2 max-w-md">
-            <TabsTrigger value="products" className="tracking-[0.15em]">
+            <TabsTrigger value="products" className="tracking-[0.15em] text-xs sm:text-sm">
               PRODUCTS
             </TabsTrigger>
-            <TabsTrigger value="orders" className="tracking-[0.15em]">
+            <TabsTrigger value="orders" className="tracking-[0.15em] text-xs sm:text-sm">
               ORDERS
             </TabsTrigger>
           </TabsList>
 
           {/* Products Tab */}
-          <TabsContent value="products" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl tracking-[0.15em]">PRODUCT MANAGEMENT</h2>
+          <TabsContent value="products" className="space-y-4 sm:space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+              <h2 className="text-lg sm:text-xl tracking-[0.15em]">PRODUCT MANAGEMENT</h2>
               <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="tracking-[0.15em] gap-2">
-                    <Plus className="w-4 h-4" />
+                  <Button className="tracking-[0.15em] gap-2 text-xs sm:text-sm w-full sm:w-auto">
+                    <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
                     ADD PRODUCT
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="w-[95vw] sm:w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle className="tracking-[0.15em]">ADD NEW PRODUCT</DialogTitle>
-                    <DialogDescription>
+                    <DialogTitle className="tracking-[0.15em] text-base sm:text-lg">ADD NEW PRODUCT</DialogTitle>
+                    <DialogDescription className="text-xs sm:text-sm">
                       Add a new product to your catalog
                     </DialogDescription>
                   </DialogHeader>
-                  <form onSubmit={handleAddProduct} className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
+                  <form onSubmit={handleAddProduct} className="space-y-4 sm:space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="name">Product Name</Label>
-                        <Input id="name" name="name" required />
+                        <Label htmlFor="name" className="text-xs sm:text-sm">Product Name</Label>
+                        <Input id="name" name="name" className="text-xs sm:text-sm" required />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="price">Price ($)</Label>
-                        <Input id="price" name="price" type="number" required />
+                        <Label htmlFor="price" className="text-xs sm:text-sm">Price ($)</Label>
+                        <Input id="price" name="price" type="number" className="text-xs sm:text-sm" required />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="image">Image URL</Label>
-                      <Input id="image" name="image" type="url" required />
+                      <Label htmlFor="image" className="text-xs sm:text-sm">Image URL</Label>
+                      <Input id="image" name="image" type="url" className="text-xs sm:text-sm" required />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="category">Category</Label>
+                        <Label htmlFor="category" className="text-xs sm:text-sm">Category</Label>
                         <Select name="category" required>
                           <SelectTrigger className={selectStyles.trigger}>
                             <SelectValue placeholder="Select category" />
@@ -378,7 +378,7 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="gender">Gender</Label>
+                        <Label htmlFor="gender" className="text-xs sm:text-sm">Gender</Label>
                         <Select name="gender" required>
                           <SelectTrigger className={selectStyles.trigger}>
                             <SelectValue placeholder="Select gender" />
@@ -392,33 +392,33 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="sizes">Sizes (comma separated)</Label>
-                        <Input id="sizes" name="sizes" placeholder="XS, S, M, L, XL" required />
+                        <Label htmlFor="sizes" className="text-xs sm:text-sm">Sizes (comma separated)</Label>
+                        <Input id="sizes" name="sizes" placeholder="XS, S, M, L, XL" className="text-xs sm:text-sm" required />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="colors">Colors (comma separated)</Label>
-                        <Input id="colors" name="colors" placeholder="Black, White, Cream" required />
+                        <Label htmlFor="colors" className="text-xs sm:text-sm">Colors (comma separated)</Label>
+                        <Input id="colors" name="colors" placeholder="Black, White, Cream" className="text-xs sm:text-sm" required />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="description">Description</Label>
-                      <Textarea id="description" name="description" required />
+                      <Label htmlFor="description" className="text-xs sm:text-sm">Description</Label>
+                      <Textarea id="description" name="description" className="text-xs sm:text-sm min-h-[100px]" required />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="careInfo">Care Information</Label>
-                      <Input id="careInfo" name="careInfo" required />
+                      <Label htmlFor="careInfo" className="text-xs sm:text-sm">Care Information</Label>
+                      <Input id="careInfo" name="careInfo" className="text-xs sm:text-sm" required />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="composition">Composition</Label>
-                      <Input id="composition" name="composition" required />
+                      <Label htmlFor="composition" className="text-xs sm:text-sm">Composition</Label>
+                      <Input id="composition" name="composition" className="text-xs sm:text-sm" required />
                     </div>
 
-                    <Button type="submit" className="w-full tracking-[0.15em]">
+                    <Button type="submit" className="w-full tracking-[0.15em] text-xs sm:text-sm">
                       ADD PRODUCT
                     </Button>
                   </form>
@@ -426,49 +426,49 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
               </Dialog>
             </div>
 
-            {/* Mobile: Card View */}
+            {/* Mobile: Card View - Only visible on mobile */}
             <div className="block sm:hidden space-y-4">
               {products.map((product) => (
-                <div key={product.id} className="bg-white shadow-sm rounded-lg p-3 sm:p-4 space-y-2 sm:space-y-3">
-                  <div className="flex items-start gap-2 sm:gap-3">
+                <div key={product.id} className="bg-white shadow-sm rounded-lg p-4 space-y-3">
+                  <div className="flex items-start gap-3">
                     <img
                       src={product.image}
                       alt={product.name}
-                      className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded flex-shrink-0"
+                      className="w-20 h-20 object-cover rounded flex-shrink-0"
                     />
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium tracking-[0.05em] truncate text-xs sm:text-sm">{product.name}</h3>
-                      <div className="mt-1 space-y-0.5 sm:space-y-1">
-                        <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-[0.1em]">
+                      <h3 className="font-medium tracking-[0.05em] truncate text-sm">{product.name}</h3>
+                      <div className="mt-1 space-y-1">
+                        <p className="text-xs text-muted-foreground uppercase tracking-[0.1em]">
                           {product.category}
                         </p>
-                        <p className="text-base sm:text-lg font-semibold">${product.price}</p>
-                        <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-[0.1em]">
+                        <p className="text-lg font-semibold">${product.price}</p>
+                        <p className="text-xs text-muted-foreground uppercase tracking-[0.1em]">
                           {product.gender}
                         </p>
                       </div>
                     </div>
                   </div>
-                  <div className="flex gap-1.5 sm:gap-2 pt-2 border-t">
+                  <div className="flex gap-2 pt-2 border-t">
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1 text-[10px] sm:text-xs h-8 sm:h-9"
+                      className="flex-1 text-xs"
                       onClick={() => {
                         setEditingProduct(product);
                         setIsEditDialogOpen(true);
                       }}
                     >
-                      <Edit className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" />
+                      <Edit className="w-3 h-3 mr-1" />
                       Edit
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1 text-[10px] sm:text-xs h-8 sm:h-9"
+                      className="flex-1 text-xs"
                       onClick={() => handleDeleteProduct(product.id)}
                     >
-                      <Trash2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" />
+                      <Trash2 className="w-3 h-3 mr-1" />
                       Delete
                     </Button>
                   </div>
@@ -476,58 +476,58 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
               ))}
             </div>
 
-            {/* Desktop: Table View */}
+            {/* Desktop: Table View - Visible on tablet and larger */}
             <div className="hidden sm:block bg-white shadow-sm overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-[10px] sm:text-xs md:text-sm">IMAGE</TableHead>
-                    <TableHead className="text-[10px] sm:text-xs md:text-sm">NAME</TableHead>
-                    <TableHead className="text-[10px] sm:text-xs md:text-sm">CATEGORY</TableHead>
-                    <TableHead className="text-[10px] sm:text-xs md:text-sm">PRICE</TableHead>
-                    <TableHead className="text-[10px] sm:text-xs md:text-sm">GENDER</TableHead>
-                    <TableHead className="text-right text-[10px] sm:text-xs md:text-sm">ACTIONS</TableHead>
+                    <TableHead className="text-xs sm:text-sm">IMAGE</TableHead>
+                    <TableHead className="text-xs sm:text-sm">NAME</TableHead>
+                    <TableHead className="text-xs sm:text-sm">CATEGORY</TableHead>
+                    <TableHead className="text-xs sm:text-sm">PRICE</TableHead>
+                    <TableHead className="text-xs sm:text-sm">GENDER</TableHead>
+                    <TableHead className="text-right text-xs sm:text-sm">ACTIONS</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {products.map((product) => (
                     <TableRow key={product.id}>
-                      <TableCell className="py-2 sm:py-3">
+                      <TableCell>
                         <img
                           src={product.image}
                           alt={product.name}
-                          className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 object-cover rounded"
+                          className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded"
                           style={{ maxWidth: '200px', maxHeight: '200px' }}
                         />
                       </TableCell>
-                      <TableCell className="tracking-[0.05em] text-[10px] sm:text-xs md:text-sm py-2 sm:py-3">{product.name}</TableCell>
-                      <TableCell className="uppercase text-[10px] sm:text-xs tracking-[0.1em] py-2 sm:py-3">
+                      <TableCell className="tracking-[0.05em] text-xs sm:text-sm">{product.name}</TableCell>
+                      <TableCell className="uppercase text-xs tracking-[0.1em]">
                         {product.category}
                       </TableCell>
-                      <TableCell className="text-[10px] sm:text-xs md:text-sm py-2 sm:py-3">${product.price}</TableCell>
-                      <TableCell className="uppercase text-[10px] sm:text-xs tracking-[0.1em] py-2 sm:py-3">
+                      <TableCell className="text-xs sm:text-sm">${product.price}</TableCell>
+                      <TableCell className="uppercase text-xs tracking-[0.1em]">
                         {product.gender}
                       </TableCell>
-                      <TableCell className="text-right py-2 sm:py-3">
-                        <div className="flex gap-1 sm:gap-2 justify-end">
+                      <TableCell className="text-right">
+                        <div className="flex gap-2 justify-end">
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-auto text-[10px] sm:text-xs"
+                            className="h-8 w-8 sm:w-auto"
                             onClick={() => {
                               setEditingProduct(product);
                               setIsEditDialogOpen(true);
                             }}
                           >
-                            <Edit className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4" />
+                            <Edit className="w-4 h-4" />
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-auto text-[10px] sm:text-xs"
+                            className="h-8 w-8 sm:w-auto"
                             onClick={() => handleDeleteProduct(product.id)}
                           >
-                            <Trash2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4" />
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
                       </TableCell>
