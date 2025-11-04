@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, Star } from 'lucide-react';
@@ -12,6 +12,13 @@ import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useCart } from '../../context/CartContext';
 import { useUser } from '../../context/UserContext';
+
+interface ProductVariant {
+  id: string;
+  size: string;
+  color?: string;
+  stock: number;
+}
 
 interface Product {
   id: string;
@@ -27,12 +34,19 @@ interface Product {
   };
   artistId?: string;
   relatedProducts?: string[];
-  variants?: Array<{
-    id: string;
-    size: string;
-    color?: string;
-    stock: number;
-  }>;
+  variants?: ProductVariant[];
+}
+
+interface ProductLike {
+  id: string;
+  name: string;
+  image?: string;
+  images?: string[] | string;
+  artistId?: string;
+  variants?: ProductVariant[];
+  description?: string;
+  details?: { material?: string; size?: string };
+  price: number;
 }
 
 interface Artist {
@@ -43,177 +57,210 @@ interface Artist {
   image?: string;
 }
 
+/** 0~5 사이 소수점을 예쁘게 채우는 별점 */
+function StarRating({
+  rating,
+  size = 20,
+  emptyClass = 'text-white/30',
+  fillClass = 'text-yellow-400',
+}: {
+  rating: number;               // 0~5 (소수점 포함)
+  size?: number;                // px
+  emptyClass?: string;
+  fillClass?: string;
+}) {
+  const safe = Math.max(0, Math.min(5, Number.isFinite(rating) ? rating : 0));
+  const percent = `${(safe / 5) * 100}%`;
+
+  return (
+    <div className="relative inline-block" style={{ width: size * 5, height: size }}>
+      {/* 빈 별 5개 */}
+      <div className="flex gap-0.5">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Star key={i} className={emptyClass} style={{ width: size, height: size }} />
+        ))}
+      </div>
+      {/* 채운 별 5개 (가로 클립) */}
+      <div
+        className="absolute top-0 left-0 overflow-hidden"
+        style={{ width: percent, height: size }}
+        aria-hidden
+      >
+        <div className="flex gap-0.5">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Star
+              key={i}
+              className={`fill-current ${fillClass}`}
+              style={{ width: size, height: size }}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ProductDetail() {
   const { id } = useParams();
   const { language, t } = useLanguage();
   const { addToCart } = useCart();
   const { user, isFavorite, toggleFavorite } = useUser();
   const navigate = useNavigate();
+
   const [product, setProduct] = useState<Product | null>(null);
   const [artist, setArtist] = useState<Artist | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedVariant, setSelectedVariant] = useState<{ id: string; size: string; color?: string } | null>(null);
+
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [averageRating, setAverageRating] = useState<number>(0);
   const [isReviewsDialogOpen, setIsReviewsDialogOpen] = useState(false);
   const [isLoadingReviews, setIsLoadingReviews] = useState(false);
 
+  const averageRating = useMemo(() => {
+    if (reviews.length === 0) return 0;
+    const sum = reviews.reduce((acc, r) => acc + (Number.isFinite(r.rating) ? r.rating : 0), 0);
+    return Number((sum / reviews.length).toFixed(1));
+  }, [reviews]);
+
   useEffect(() => {
-    if (id) {
-      loadProduct();
-      loadReviews();
-    }
+    if (!id) return;
+    void loadProduct(id);
+    void loadReviews(id);
   }, [id]);
 
-  const loadProduct = async () => {
+  function isProductLike(v: unknown): v is ProductLike {
+    return typeof v === 'object' && v !== null && 'id' in v && 'name' in v && 'price' in v;
+  }
+
+  async function loadProduct(productId: string) {
     try {
       setLoading(true);
-      const response: any = await productService.getById(id!);
-      
-      let productData: any = response;
-      if (response?.data?.data) {
-        productData = response.data.data;
-      } else if (response?.data) {
-        productData = response.data;
-      }
-      
-      let images: string[] = [];
-      try {
-        if (Array.isArray(productData.images)) {
-          images = productData.images;
-        } else if (typeof productData.images === 'string') {
-          const parsed = JSON.parse(productData.images);
-          images = Array.isArray(parsed) ? parsed : [parsed];
+
+      // 다양한 래핑을 고려하여 안전하게 풀기
+      const raw = await productService.getById(productId) as unknown;
+      let p: ProductLike | null = null;
+
+      if (isProductLike(raw)) {
+        p = raw;
+      } else if (typeof raw === 'object' && raw !== null && 'data' in raw) {
+        const d1 = (raw as { data?: unknown }).data;
+        if (isProductLike(d1)) p = d1;
+        else if (typeof d1 === 'object' && d1 !== null && 'data' in d1) {
+          const d2 = (d1 as { data?: unknown }).data;
+          if (isProductLike(d2)) p = d2;
         }
-      } catch (e) {
-        console.warn('Failed to parse images:', e);
       }
 
-      const processedProduct = {
-        ...productData,
-        title: productData.name,
-        images: images.length > 0 ? images : [productData.image || ''],
-        image: images[0] || productData.image || '',
-      };
-      
-      setProduct(processedProduct);
-      
-      // 첫 번째 variant를 기본값으로 설정
-      if (processedProduct.variants && processedProduct.variants.length > 0) {
-        const firstVariant = processedProduct.variants[0];
-        setSelectedVariant({
-          id: firstVariant.id,
-          size: firstVariant.size,
-          color: firstVariant.color || 'Black',
-        });
-      } else {
-        // Variant가 없으면 기본 variant 생성 (백엔드에서 처리하거나 임시로 사용)
-        console.warn('⚠️ No variants found for product, need to create default variant');
-      }
-      
-      // 아티스트 정보 로드
-      if (productData.artistId) {
+      if (!p) throw new Error('Invalid product payload');
+
+      // images 파싱 (string | string[])
+      let images: string[] = [];
+      if (Array.isArray(p.images)) {
+        images = p.images.filter((s): s is string => typeof s === 'string' && s.length > 0);
+      } else if (typeof p.images === 'string') {
         try {
-          const artistResponse: any = await artistService.getById(productData.artistId);
-          let artistData: any = artistResponse;
-          if (artistResponse?.data?.data) {
-            artistData = artistResponse.data.data;
-          } else if (artistResponse?.data) {
-            artistData = artistResponse.data;
+          const parsed = JSON.parse(p.images) as unknown;
+          if (Array.isArray(parsed)) {
+            images = (parsed as unknown[]).filter((s): s is string => typeof s === 'string' && s.length > 0);
+          } else if (typeof parsed === 'string' && parsed.length > 0) {
+            images = [parsed];
           }
-          setArtist(artistData);
-        } catch (error) {
-          console.error('Failed to load artist:', error);
+        } catch {
+          // JSON 파싱 실패시 무시
         }
       }
-    } catch (error: any) {
-      console.error('Failed to load product:', error);
+
+      const processed: Product = {
+        ...p,
+        title: p.name,
+        images: images.length > 0 ? images : p.image ? [p.image] : undefined,
+        image: images[0] ?? p.image,
+      };
+
+      setProduct(processed);
+
+      // 기본 variant
+      if (processed.variants && processed.variants.length > 0) {
+        const v0 = processed.variants[0];
+        setSelectedVariant({
+          id: v0.id,
+          size: v0.size,
+          color: v0.color,
+        });
+      }
+
+      // 아티스트
+      if (p.artistId) {
+        try {
+          const ar = await artistService.getById(p.artistId) as unknown;
+          let a: Artist | null = null;
+
+          const isArtist = (x: unknown): x is Artist =>
+            typeof x === 'object' && x !== null && 'id' in x && 'name' in x;
+
+          if (isArtist(ar)) a = ar;
+          else if (typeof ar === 'object' && ar !== null && 'data' in ar) {
+            const d1 = (ar as { data?: unknown }).data;
+            if (isArtist(d1)) a = d1;
+            else if (typeof d1 === 'object' && d1 !== null && 'data' in d1) {
+              const d2 = (d1 as { data?: unknown }).data;
+              if (isArtist(d2)) a = d2;
+            }
+          }
+
+          if (a) setArtist(a);
+        } catch {
+          // 아티스트 실패는 치명적 아님
+        }
+      }
+    } catch {
       toast.error(language === 'ko' ? '상품을 불러올 수 없습니다' : 'Failed to load product');
     } finally {
       setLoading(false);
     }
-  };
+  }
 
-  const loadReviews = async () => {
-    if (!id) return;
-    
+  async function loadReviews(productId: string) {
     try {
       setIsLoadingReviews(true);
-      const response: any = await reviewService.getProductReviews(id);
-      
-      // API 응답 구조: { success: true, data: Review[] }
-      let reviewsData: Review[] = [];
-      
-      if (response && response.success && Array.isArray(response.data)) {
-        // 정상 응답: { success: true, data: [...] }
-        reviewsData = response.data;
-      } else if (Array.isArray(response)) {
-        // 배열이 직접 반환된 경우
-        reviewsData = response;
-      } else if (response && typeof response === 'object' && Array.isArray(response.data)) {
-        // data 필드가 배열인 경우
-        reviewsData = response.data;
-      }
-      
-      setReviews(reviewsData || []);
-      
-      // 평균 별점 계산
-      if (reviewsData && reviewsData.length > 0) {
-        const sum = reviewsData.reduce((acc: number, review: Review) => {
-          const rating = typeof review.rating === 'number' ? review.rating : 0;
-          return acc + rating;
-        }, 0);
-        const avg = sum / reviewsData.length;
-        setAverageRating(Number(avg.toFixed(1)));
-      } else {
-        setAverageRating(0);
-      }
-    } catch (error: any) {
-      console.error('Failed to load reviews:', error);
+      const list = await reviewService.getProductReviews(productId);
+      setReviews(list);
+    } catch {
       setReviews([]);
-      setAverageRating(0);
     } finally {
       setIsLoadingReviews(false);
     }
-  };
+  }
 
-  const handleAddToCart = async () => {
+  async function handleAddToCart() {
     if (!user) {
-      toast.error(t('cart.loginRequired') || '로그인을 해주세요');
+      toast.error(t('cart.loginRequired') ?? '로그인을 해주세요');
       navigate('/login');
       return;
     }
-    
-    if (!product) return;
-    
-    if (!selectedVariant) {
-      toast.error(t('product.select.options.required'));
-      return;
-    }
-    
-    try {
-      await addToCart(product, selectedVariant.size, selectedVariant.color || 'Black', selectedVariant.id);
-      toast.success(t('product.added.to.cart'));
-    } catch (error: any) {
-      console.error('❌ Add to cart error:', error);
-      toast.error(error?.message || t('product.add.cart.failed'));
-    }
-  };
-
-  const handleBuyNow = () => {
-    if (!user) {
-      toast.error(t('cart.loginRequired') || '로그인을 해주세요');
-      navigate('/login');
-      return;
-    }
-    
     if (!product || !selectedVariant) {
       toast.error(t('product.select.options.required'));
       return;
     }
-    
-    // 체크아웃 페이지로 이동하면서 상품 정보 전달
+    try {
+      await addToCart(product, selectedVariant.size, selectedVariant.color, selectedVariant.id);
+      toast.success(t('product.added.to.cart'));
+    } catch (e) {
+      toast.error(t('product.add.cart.failed'));
+    }
+  }
+
+  function handleBuyNow() {
+    if (!user) {
+      toast.error(t('cart.loginRequired') ?? '로그인을 해주세요');
+      navigate('/login');
+      return;
+    }
+    if (!product || !selectedVariant) {
+      toast.error(t('product.select.options.required'));
+      return;
+    }
     navigate('/checkout', {
       state: {
         directPurchase: true,
@@ -221,12 +268,12 @@ export function ProductDetail() {
           ...product,
           variantId: selectedVariant.id,
           size: selectedVariant.size,
-          color: selectedVariant.color || 'Black',
+          color: selectedVariant.color,
           quantity: 1,
-        }
-      }
+        },
+      },
     });
-  };
+  }
 
   if (loading) {
     return (
@@ -276,13 +323,15 @@ export function ProductDetail() {
               <>
                 <div className="aspect-square max-w-48 mx-auto rounded-lg overflow-hidden mb-4">
                   <ImageWithFallback
-                    src={artist.profileImage || artist.image}
-                    alt={language === 'ko' ? artist.name : (artist.nameEn || artist.name)}
+                    src={artist.profileImage ?? artist.image}
+                    alt={language === 'ko' ? artist.name : artist.nameEn ?? artist.name}
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <h3 className="text-white mb-2">{language === 'ko' ? '아티스트' : 'Artist'}</h3>
-                <p className="text-white/70 mb-4">{language === 'ko' ? artist.name : (artist.nameEn || artist.name)}</p>
+                <p className="text-white/70 mb-4">
+                  {language === 'ko' ? artist.name : artist.nameEn ?? artist.name}
+                </p>
                 <Link
                   to={`/artist/${artist.id}`}
                   className="text-[#5842FF] hover:text-[#5842FF]/80 transition-colors text-sm"
@@ -302,8 +351,8 @@ export function ProductDetail() {
           >
             <div className="max-w-md mx-auto aspect-square rounded-lg overflow-hidden bg-white/5 border border-white/10 mb-4">
               <ImageWithFallback
-                src={product.images?.[selectedImage] || product.image}
-                alt={product.title}
+                src={product.images?.[selectedImage] ?? product.image}
+                alt={product.title ?? product.name}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -321,7 +370,7 @@ export function ProductDetail() {
                   >
                     <ImageWithFallback
                       src={img}
-                      alt={`${product.title} ${index + 1}`}
+                      alt={`${product.title ?? product.name} ${index + 1}`}
                       className="w-full h-full object-cover"
                     />
                   </button>
@@ -338,64 +387,39 @@ export function ProductDetail() {
             className="order-3"
           >
             <div className="flex items-start justify-between mb-2">
-              <h1 className="text-white flex-1">{product.title || product.name}</h1>
+              <h1 className="text-white flex-1">{product.title ?? product.name}</h1>
               <button
                 onClick={() => toggleFavorite(product.id)}
-                className={`p-2 rounded-full transition-all ml-4
-                  ${isFavorite(product.id) ? 'bg-red-100/10 hover:bg-red-100/20' : 'bg-white/5 hover:bg-white/10'}
-                `}
+                className={`p-2 rounded-full transition-all ml-4 ${
+                  isFavorite(product.id) ? 'bg-red-100/10 hover:bg-red-100/20' : 'bg-white/5 hover:bg-white/10'
+                }`}
                 aria-label={isFavorite(product.id) ? 'Remove from favorites' : 'Add to favorites'}
               >
-                <Heart 
-                  className={`w-6 h-6 ${isFavorite(product.id) ? 'fill-red-500 text-red-500' : 'text-white'}`} 
-                />
+                <Heart className={`w-6 h-6 ${isFavorite(product.id) ? 'fill-red-500 text-red-500' : 'text-white'}`} />
               </button>
             </div>
-            <p className="text-[#5842FF] mb-4 text-xl sm:text-2xl">${typeof product.price === 'number' ? product.price.toFixed(2) : product.price}</p>
 
-            {/* 리뷰 섹션 */}
+            <p className="text-[#5842FF] mb-4 text-xl sm:text-2xl">
+              {typeof product.price === 'number' ? `$${product.price.toFixed(2)}` : product.price}
+            </p>
+
+            {/* 리뷰 요약/열기 */}
             <button
               onClick={() => setIsReviewsDialogOpen(true)}
-              className="flex items-center gap-2 p-2 mb-6 hover:opacity-80 transition-opacity cursor-pointer border border-white/20 bg-white/5 px-4 py-3 rounded-lg w-full sm:w-auto"
+              className="flex items-center justify-between gap-4 w-full sm:w-auto border border-white/20 bg-white/5 px-4 py-3 rounded-lg mb-6 hover:opacity-90 transition-opacity"
             >
-              {isLoadingReviews ? (
-                <span className="text-white/50 text-sm">{language === 'ko' ? '리뷰를 불러오는 중...' : 'Loading reviews...'}</span>
-              ) : reviews.length > 0 && averageRating > 0 ? (
-                <>
-                  <div className="flex items-center gap-0.5">
-                    {[1, 2, 3, 4, 5].map((starIndex) => {
-                      const roundedRating = Math.round(averageRating);
-                      return (
-                        <Star
-                          key={starIndex}
-                          className={`w-5 h-5 transition-colors ${
-                            starIndex <= roundedRating
-                              ? 'fill-yellow-400 text-yellow-400'
-                              : 'fill-none text-white/30'
-                          }`}
-                        />
-                      );
-                    })}
-                  </div>
-                  <span className="text-white/70 text-sm">
-                    ({averageRating.toFixed(1)}) {reviews.length}{language === 'ko' ? '개 리뷰' : ' reviews'}
-                  </span>
-                </>
-              ) : (
-                <>
-                  <div className="flex items-center gap-0.5">
-                    {[1, 2, 3, 4, 5].map((starIndex) => (
-                      <Star
-                        key={starIndex}
-                        className="w-5 h-5 fill-none text-white/30"
-                      />
-                    ))}
-                  </div>
-                  <span className="text-white/50 text-sm">
-                    {language === 'ko' ? '아직 리뷰가 없습니다' : 'No reviews yet'}
-                  </span>
-                </>
-              )}
+              <div className="flex items-center gap-3">
+                <StarRating rating={averageRating} size={20} />
+                <span className="text-white/80 text-sm">
+                  {reviews.length > 0
+                    ? `(${averageRating.toFixed(1)}) · ${reviews.length}${
+                        language === 'ko' ? '개 리뷰' : ' reviews'
+                      }`
+                    : language === 'ko'
+                    ? '아직 리뷰가 없습니다'
+                    : 'No reviews yet'}
+                </span>
+              </div>
             </button>
 
             {product.description && (
@@ -429,7 +453,7 @@ export function ProductDetail() {
               </div>
             )}
 
-            {/* Variant 선택 (variants가 있는 경우) */}
+            {/* Variant 선택 */}
             {product.variants && product.variants.length > 0 && (
               <div className="mb-6 sm:mb-8">
                 <h2 className="text-white mb-4">{t('product.select.options')}</h2>
@@ -440,18 +464,20 @@ export function ProductDetail() {
                       {product.variants.map((variant) => (
                         <button
                           key={variant.id}
-                          onClick={() => setSelectedVariant({
-                            id: variant.id,
-                            size: variant.size,
-                            color: variant.color || 'Black',
-                          })}
+                          onClick={() =>
+                            setSelectedVariant({
+                              id: variant.id,
+                              size: variant.size,
+                              color: variant.color,
+                            })
+                          }
                           className={`px-4 py-2 rounded-lg border text-sm transition-all ${
                             selectedVariant?.id === variant.id
                               ? 'bg-[#5842FF] border-[#5842FF] text-white'
                               : 'bg-transparent border-white/20 text-white/70 hover:border-[#5842FF]'
                           }`}
                         >
-                          {variant.size} {variant.color && `- ${variant.color}`}
+                          {variant.size} {variant.color ? `- ${variant.color}` : ''}
                         </button>
                       ))}
                     </div>
@@ -461,14 +487,14 @@ export function ProductDetail() {
             )}
 
             <div className="space-y-3">
-              <Button 
+              <Button
                 onClick={handleAddToCart}
                 disabled={!selectedVariant}
                 className="w-full bg-transparent border border-white/20 text-white hover:border-[#5842FF] hover:text-[#5842FF] disabled:opacity-50"
               >
                 {t('product.add.cart')}
               </Button>
-              <Button 
+              <Button
                 onClick={handleBuyNow}
                 disabled={!selectedVariant}
                 className="w-full bg-[#5842FF] hover:bg-[#5842FF]/80 text-white disabled:opacity-50"
@@ -478,8 +504,6 @@ export function ProductDetail() {
             </div>
           </motion.div>
         </div>
-
-        {/* Related Products - 나중에 API로 연결 가능 */}
       </div>
 
       {/* 리뷰 목록 다이얼로그 */}
@@ -490,7 +514,20 @@ export function ProductDetail() {
               {language === 'ko' ? `리뷰 (${reviews.length}개)` : `Reviews (${reviews.length})`}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 mt-4">
+
+          {/* 상단 요약 */}
+          <div className="flex items-center gap-3 mt-2 mb-4">
+            <StarRating rating={averageRating} size={22} />
+            <span className="text-white/80 text-sm">
+              {reviews.length > 0
+                ? `(${averageRating.toFixed(1)}) · ${reviews.length}${language === 'ko' ? '개' : ''}`
+                : language === 'ko'
+                ? '아직 리뷰가 없습니다'
+                : 'No reviews yet'}
+            </span>
+          </div>
+
+          <div className="space-y-4">
             {isLoadingReviews ? (
               <div className="text-center py-8 text-white/70">
                 {language === 'ko' ? '리뷰를 불러오는 중...' : 'Loading reviews...'}
@@ -501,32 +538,14 @@ export function ProductDetail() {
               </div>
             ) : (
               reviews.map((review) => {
-                // rating 값을 안전하게 숫자로 변환 (1-5 범위)
-                const ratingValue = typeof review.rating === 'number' 
-                  ? Math.max(1, Math.min(5, review.rating)) 
-                  : 0;
-                
+                const star = Math.max(0, Math.min(5, Number(review.rating)));
                 return (
-                  <div
-                    key={review.id}
-                    className="border-b border-white/10 pb-4 last:border-b-0"
-                  >
+                  <div key={review.id} className="border-b border-white/10 pb-4 last:border-b-0">
                     <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-0.5">
-                          {[1, 2, 3, 4, 5].map((starIndex) => (
-                            <Star
-                              key={starIndex}
-                              className={`w-4 h-4 transition-colors ${
-                                starIndex <= ratingValue
-                                  ? 'fill-yellow-400 text-yellow-400'
-                                  : 'fill-none text-white/30'
-                              }`}
-                            />
-                          ))}
-                        </div>
+                      <div className="flex items-center gap-3">
+                        <StarRating rating={star} size={16} />
                         <span className="text-white/70 text-sm">
-                          {review.userName || (language === 'ko' ? '익명' : 'Anonymous')}
+                          {review.userName ?? (language === 'ko' ? '익명' : 'Anonymous')}
                         </span>
                       </div>
                       <span className="text-white/50 text-xs">
