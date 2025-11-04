@@ -65,9 +65,9 @@ const AdminProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children
 // 레이아웃 컴포넌트
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <div className="min-h-screen bg-black flex flex-col">
+    <div className="min-h-screen bg-black flex flex-col overflow-x-hidden w-full">
       <Header />
-      <main>{children}</main>
+      <main className="w-full">{children}</main>
       <Footer />
     </div>
   );

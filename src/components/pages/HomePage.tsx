@@ -27,7 +27,7 @@ export function HomePage() {
       {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         {/* Video Background Placeholder */}
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 w-full h-full">
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black z-10" />
           <ImageWithFallback
             src="https://images.unsplash.com/photo-1681235014294-588fea095706?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMGFydCUyMHBhaW50aW5nfGVufDF8fHx8MTc2MTc4MzQ5NHww&ixlib=rb-4.1.0&q=80&w=1080"
@@ -36,6 +36,7 @@ export function HomePage() {
             width={1080}
             height={720}
             loading="eager"
+            style={{ maxWidth: '100%', objectFit: 'cover' }}
           />
         </div>
 
