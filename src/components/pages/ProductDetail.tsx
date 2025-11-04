@@ -1,16 +1,17 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Heart, Star } from 'lucide-react';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { Button } from '../ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { productService } from '../../services/product.service';
 import { artistService } from '../../services/artist.service';
+import { reviewService, Review } from '../../services/review.service';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useCart } from '../../context/CartContext';
 import { useUser } from '../../context/UserContext';
-import { Heart } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -53,10 +54,15 @@ export function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedVariant, setSelectedVariant] = useState<{ id: string; size: string; color?: string } | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [averageRating, setAverageRating] = useState<number>(0);
+  const [isReviewsDialogOpen, setIsReviewsDialogOpen] = useState(false);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(false);
 
   useEffect(() => {
     if (id) {
       loadProduct();
+      loadReviews();
     }
   }, [id]);
 
@@ -126,6 +132,43 @@ export function ProductDetail() {
       toast.error(language === 'ko' ? '상품을 불러올 수 없습니다' : 'Failed to load product');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadReviews = async () => {
+    if (!id) return;
+    
+    try {
+      setIsLoadingReviews(true);
+      const response: any = await reviewService.getProductReviews(id);
+      
+      let reviewsData: Review[] = [];
+      
+      if (Array.isArray(response)) {
+        reviewsData = response;
+      } else if (response && typeof response === 'object') {
+        if (Array.isArray(response.data)) {
+          reviewsData = response.data;
+        } else if (response.data && Array.isArray(response.data.data)) {
+          reviewsData = response.data.data;
+        }
+      }
+      
+      setReviews(reviewsData || []);
+      
+      if (reviewsData && reviewsData.length > 0) {
+        const sum = reviewsData.reduce((acc: number, review: Review) => acc + (review.rating || 0), 0);
+        const avg = sum / reviewsData.length;
+        setAverageRating(Number(avg.toFixed(1)));
+      } else {
+        setAverageRating(0);
+      }
+    } catch (error: any) {
+      console.error('Failed to load reviews:', error);
+      setReviews([]);
+      setAverageRating(0);
+    } finally {
+      setIsLoadingReviews(false);
     }
   };
 
@@ -302,7 +345,49 @@ export function ProductDetail() {
                 />
               </button>
             </div>
-            <p className="text-[#5842FF] mb-6 sm:mb-8 text-xl sm:text-2xl">${typeof product.price === 'number' ? product.price.toFixed(2) : product.price}</p>
+            <p className="text-[#5842FF] mb-4 text-xl sm:text-2xl">${typeof product.price === 'number' ? product.price.toFixed(2) : product.price}</p>
+
+            {/* 리뷰 섹션 */}
+            <button
+              onClick={() => setIsReviewsDialogOpen(true)}
+              className="flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity cursor-pointer border border-white/20 bg-white/5 px-4 py-3 rounded-lg w-full sm:w-auto"
+            >
+              {isLoadingReviews ? (
+                <span className="text-white/50 text-sm">{language === 'ko' ? '리뷰를 불러오는 중...' : 'Loading reviews...'}</span>
+              ) : reviews.length > 0 && averageRating > 0 ? (
+                <>
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((rating) => (
+                      <Star
+                        key={rating}
+                        className={`w-5 h-5 ${
+                          rating <= Math.round(averageRating)
+                            ? 'fill-yellow-400 text-yellow-400'
+                            : 'text-white/30'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-white/70 text-sm">
+                    ({averageRating.toFixed(1)}) {reviews.length}{language === 'ko' ? '개 리뷰' : ' reviews'}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((rating) => (
+                      <Star
+                        key={rating}
+                        className="w-5 h-5 text-white/30"
+                      />
+                    ))}
+                  </div>
+                  <span className="text-white/50 text-sm">
+                    {language === 'ko' ? '아직 리뷰가 없습니다' : 'No reviews yet'}
+                  </span>
+                </>
+              )}
+            </button>
 
             {product.description && (
               <div className="mb-6 sm:mb-8">
@@ -387,6 +472,59 @@ export function ProductDetail() {
 
         {/* Related Products - 나중에 API로 연결 가능 */}
       </div>
+
+      {/* 리뷰 목록 다이얼로그 */}
+      <Dialog open={isReviewsDialogOpen} onOpenChange={setIsReviewsDialogOpen}>
+        <DialogContent className="bg-black border-white/20 text-white max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white text-xl">
+              {language === 'ko' ? `리뷰 (${reviews.length}개)` : `Reviews (${reviews.length})`}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            {isLoadingReviews ? (
+              <div className="text-center py-8 text-white/70">
+                {language === 'ko' ? '리뷰를 불러오는 중...' : 'Loading reviews...'}
+              </div>
+            ) : reviews.length === 0 ? (
+              <div className="text-center py-8 text-white/70">
+                {language === 'ko' ? '아직 작성된 리뷰가 없습니다.' : 'No reviews yet.'}
+              </div>
+            ) : (
+              reviews.map((review) => (
+                <div
+                  key={review.id}
+                  className="border-b border-white/10 pb-4 last:border-b-0"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center">
+                        {[1, 2, 3, 4, 5].map((rating) => (
+                          <Star
+                            key={rating}
+                            className={`w-4 h-4 ${
+                              rating <= review.rating
+                                ? 'fill-yellow-400 text-yellow-400'
+                                : 'text-white/30'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-white/70 text-sm">
+                        {review.userName || (language === 'ko' ? '익명' : 'Anonymous')}
+                      </span>
+                    </div>
+                    <span className="text-white/50 text-xs">
+                      {new Date(review.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <p className="text-white/90 text-sm leading-relaxed">{review.comment}</p>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
