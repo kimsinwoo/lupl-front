@@ -140,52 +140,37 @@ export function ProductDetail() {
     
     try {
       setIsLoadingReviews(true);
-      console.log('🔍 Loading reviews for productId:', id);
       const response: any = await reviewService.getProductReviews(id);
-      console.log('📦 Raw API response:', response);
       
       // API 응답 구조: { success: true, data: Review[] }
-      // api.get은 response.data를 반환하므로, 실제 응답은 { success: true, data: [...] }
       let reviewsData: Review[] = [];
       
       if (response && response.success && Array.isArray(response.data)) {
         // 정상 응답: { success: true, data: [...] }
         reviewsData = response.data;
-        console.log('✅ Parsed reviews (success.data):', reviewsData);
       } else if (Array.isArray(response)) {
         // 배열이 직접 반환된 경우
         reviewsData = response;
-        console.log('✅ Parsed reviews (direct array):', reviewsData);
       } else if (response && typeof response === 'object' && Array.isArray(response.data)) {
         // data 필드가 배열인 경우
         reviewsData = response.data;
-        console.log('✅ Parsed reviews (response.data):', reviewsData);
-      } else {
-        console.warn('⚠️ Unexpected response structure:', response);
       }
       
-      // 현재 제품에 대한 리뷰만 필터링
-      const filteredReviews = (reviewsData || []).filter((review: Review) => review.productId === id);
-      console.log('🔎 Filtered reviews for productId', id, ':', filteredReviews);
-      
-      setReviews(filteredReviews);
+      setReviews(reviewsData || []);
       
       // 평균 별점 계산
-      if (filteredReviews && filteredReviews.length > 0) {
-        const sum = filteredReviews.reduce((acc: number, review: Review) => {
+      if (reviewsData && reviewsData.length > 0) {
+        const sum = reviewsData.reduce((acc: number, review: Review) => {
           const rating = typeof review.rating === 'number' ? review.rating : 0;
           return acc + rating;
         }, 0);
-        const avg = sum / filteredReviews.length;
-        const roundedAvg = Number(avg.toFixed(1));
-        console.log('⭐ Average rating:', roundedAvg, 'from', filteredReviews.length, 'reviews');
-        setAverageRating(roundedAvg);
+        const avg = sum / reviewsData.length;
+        setAverageRating(Number(avg.toFixed(1)));
       } else {
-        console.log('📭 No reviews found');
         setAverageRating(0);
       }
     } catch (error: any) {
-      console.error('❌ Failed to load reviews:', error);
+      console.error('Failed to load reviews:', error);
       setReviews([]);
       setAverageRating(0);
     } finally {
