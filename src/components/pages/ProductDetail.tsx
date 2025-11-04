@@ -350,20 +350,20 @@ export function ProductDetail() {
             {/* 리뷰 섹션 */}
             <button
               onClick={() => setIsReviewsDialogOpen(true)}
-              className="flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity cursor-pointer border border-white/20 bg-white/5 px-4 py-3 rounded-lg w-full sm:w-auto"
+              className="flex items-center gap-2 p-2 mb-6 hover:opacity-80 transition-opacity cursor-pointer border border-white/20 bg-white/5 px-4 py-3 rounded-lg w-full sm:w-auto"
             >
               {isLoadingReviews ? (
                 <span className="text-white/50 text-sm">{language === 'ko' ? '리뷰를 불러오는 중...' : 'Loading reviews...'}</span>
               ) : reviews.length > 0 && averageRating > 0 ? (
                 <>
-                  <div className="flex items-center gap-1 text-white">
+                  <div className="flex items-center gap-1">
                     {[1, 2, 3, 4, 5].map((rating) => (
                       <Star
                         key={rating}
                         className={`w-5 h-5 ${
                           rating <= Math.round(averageRating)
-                            ? 'fill-yellow text-yellow'
-                            : 'text-white'
+                            ? 'fill-yellow-400 text-yellow-400'
+                            : 'text-white/30'
                         }`}
                       />
                     ))}
@@ -374,7 +374,7 @@ export function ProductDetail() {
                 </>
               ) : (
                 <>
-                  <div className="flex items-center gap-1 text-white">
+                  <div className="flex items-center gap-1">
                     {[1, 2, 3, 4, 5].map((rating) => (
                       <Star
                         key={rating}
@@ -505,20 +505,20 @@ export function ProductDetail() {
                             className={`w-4 h-4 ${
                               rating <= review.rating
                                 ? 'fill-yellow-400 text-yellow-400'
-                                : 'text-white'
+                                : 'text-white/30'
                             }`}
                           />
                         ))}
                       </div>
-                      <span className="text-black text-sm">
+                      <span className="text-white/70 text-sm">
                         {review.userName || (language === 'ko' ? '익명' : 'Anonymous')}
                       </span>
                     </div>
-                    <span className="text-black text-xs">
+                    <span className="text-white/50 text-xs">
                       {new Date(review.createdAt).toLocaleDateString()}
                     </span>
                   </div>
-                  <p className="text-black text-sm leading-relaxed">{review.comment}</p>
+                  <p className="text-white/90 text-sm leading-relaxed">{review.comment}</p>
                 </div>
               ))
             )}
