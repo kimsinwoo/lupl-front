@@ -35,13 +35,19 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
     loading?: 'lazy' | 'eager';
   }
 
+  // If className contains w-full or h-full, don't constrain with maxWidth
+  const shouldFillContainer = className.includes('w-full') && className.includes('h-full');
+  const hasExplicitSizing = style && (style.width || style.height || style.minWidth || style.minHeight);
+  
   // Calculate aspect ratio from width/height or use provided aspectRatio
   const imageStyle: React.CSSProperties = {
     ...style,
-    maxWidth: '100%',
-    height: 'auto',
-    ...(width && { width: typeof width === 'number' ? `${width}px` : width }),
-    ...(height && { height: typeof height === 'number' ? `${height}px` : height }),
+    // Only apply maxWidth if image shouldn't fill container and no explicit sizing
+    ...(!shouldFillContainer && !hasExplicitSizing && { maxWidth: '100%' }),
+    // Only apply height: auto if height isn't explicitly set via className or style
+    ...(!className.includes('h-full') && !height && !style?.height && !hasExplicitSizing && { height: 'auto' }),
+    ...(width && !style?.width && { width: typeof width === 'number' ? `${width}px` : width }),
+    ...(height && !style?.height && { height: typeof height === 'number' ? `${height}px` : height }),
     ...(aspectRatio && { aspectRatio }),
   }
 

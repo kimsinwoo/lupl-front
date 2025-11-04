@@ -23,20 +23,28 @@ export function HomePage() {
       ];
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black w-full overflow-x-hidden">
       {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden">
+      <section className="relative h-screen flex items-center justify-center overflow-hidden w-full" style={{ maxWidth: '100vw' }}>
         {/* Video Background Placeholder */}
-        <div className="absolute inset-0 w-full h-full">
+        <div className="absolute inset-0 w-full h-full overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black z-10" />
           <ImageWithFallback
             src="https://images.unsplash.com/photo-1681235014294-588fea095706?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMGFydCUyMHBhaW50aW5nfGVufDF8fHx8MTc2MTc4MzQ5NHww&ixlib=rb-4.1.0&q=80&w=1080"
             alt="Artwork collage"
-            className="w-full h-full object-cover opacity-60"
-            width={1080}
-            height={720}
+            className="absolute inset-0 w-full h-full object-cover object-center opacity-60"
             loading="eager"
-            style={{ maxWidth: '100%', objectFit: 'cover' }}
+            style={{ 
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center'
+            }}
           />
         </div>
 

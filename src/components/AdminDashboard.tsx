@@ -481,12 +481,12 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>IMAGE</TableHead>
-                    <TableHead>NAME</TableHead>
-                    <TableHead>CATEGORY</TableHead>
-                    <TableHead>PRICE</TableHead>
-                    <TableHead>GENDER</TableHead>
-                    <TableHead className="text-right">ACTIONS</TableHead>
+                    <TableHead className="text-xs sm:text-sm">IMAGE</TableHead>
+                    <TableHead className="text-xs sm:text-sm">NAME</TableHead>
+                    <TableHead className="text-xs sm:text-sm">CATEGORY</TableHead>
+                    <TableHead className="text-xs sm:text-sm">PRICE</TableHead>
+                    <TableHead className="text-xs sm:text-sm">GENDER</TableHead>
+                    <TableHead className="text-right text-xs sm:text-sm">ACTIONS</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -496,36 +496,38 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
                         <img
                           src={product.image}
                           alt={product.name}
-                          className="w-16 h-16 object-cover"
+                          className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded"
                           style={{ maxWidth: '200px', maxHeight: '200px' }}
                         />
                       </TableCell>
-                      <TableCell className="tracking-[0.05em]">{product.name}</TableCell>
+                      <TableCell className="tracking-[0.05em] text-xs sm:text-sm">{product.name}</TableCell>
                       <TableCell className="uppercase text-xs tracking-[0.1em]">
                         {product.category}
                       </TableCell>
-                      <TableCell>${product.price}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">${product.price}</TableCell>
                       <TableCell className="uppercase text-xs tracking-[0.1em]">
                         {product.gender}
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex gap-2 justify-end">
+                        <div className="flex gap-1 sm:gap-2 justify-end">
                           <Button
                             variant="outline"
                             size="sm"
+                            className="h-7 w-7 sm:h-8 sm:w-auto"
                             onClick={() => {
                               setEditingProduct(product);
                               setIsEditDialogOpen(true);
                             }}
                           >
-                            <Edit className="w-4 h-4" />
+                            <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
+                            className="h-7 w-7 sm:h-8 sm:w-auto"
                             onClick={() => handleDeleteProduct(product.id)}
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                           </Button>
                         </div>
                       </TableCell>
@@ -545,61 +547,56 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
               {orders.map((order) => (
                 <div 
                   key={order.id}
-                  className="bg-white shadow-sm rounded-lg p-4 space-y-3 cursor-pointer hover:bg-gray-50"
-                  onClick={() => {
-                    setSelectedOrder(order);
-                    setIsOrderDialogOpen(true);
-                  }}
+                  className="bg-white shadow-sm rounded-lg p-4 space-y-3"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-muted-foreground tracking-[0.1em] mb-1">ORDER ID</p>
-                      <p className="font-medium text-sm truncate">{order.id}</p>
-                    </div>
-                    <Badge className={`${getStatusColor(order.status)} text-xs flex-shrink-0`}>
-                      {order.status.toUpperCase()}
-                    </Badge>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">Date</p>
-                      <p className="text-xs">{order.date}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">Total</p>
-                      <p className="font-semibold">${((order.total ?? 0) / 1300).toFixed(2)}</p>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Customer</p>
-                    <p className="text-sm font-medium truncate">{order.customerName}</p>
-                    <p className="text-xs text-muted-foreground truncate">{order.email}</p>
-                  </div>
-                  
                   <div 
-                    className="flex items-center justify-between pt-2 border-t gap-2"
-                    onClick={(e) => e.stopPropagation()}
+                    className="space-y-3 cursor-pointer"
+                    onClick={() => {
+                      setSelectedOrder(order);
+                      setIsOrderDialogOpen(true);
+                    }}
                   >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground tracking-[0.1em] mb-1">ORDER ID</p>
+                        <p className="font-medium text-sm truncate">{order.id}</p>
+                      </div>
+                      <Badge className={`${getStatusColor(order.status)} text-xs flex-shrink-0`}>
+                        {order.status.toUpperCase()}
+                      </Badge>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Date</p>
+                        <p className="text-xs">{order.date}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Total</p>
+                        <p className="font-semibold">${((order.total ?? 0) / 1300).toFixed(2)}</p>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Customer</p>
+                      <p className="text-sm font-medium truncate">{order.customerName}</p>
+                      <p className="text-xs text-muted-foreground truncate">{order.email}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between pt-2 border-t gap-2">
                     {order.paymentStatus === 'paid' ? (
                       <>
                         <Badge className="bg-green-100 text-green-800 text-xs flex-shrink-0">PAID</Badge>
-                        <div className="flex-1" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex-1">
                           <Select
                             defaultValue={order.status}
                             onValueChange={(value) => handleOrderStatusChange(order.id, value)}
                           >
-                            <SelectTrigger 
-                              className="h-8 text-xs w-full sm:w-32"
-                              onClick={(e) => e.stopPropagation()}
-                            >
+                            <SelectTrigger className="h-8 text-xs w-full sm:w-32">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent 
-                              className={selectStyles.content}
-                              onClick={(e) => e.stopPropagation()}
-                            >
+                            <SelectContent className={selectStyles.content}>
                               <SelectItem className={selectStyles.item} value="pending">Pending</SelectItem>
                               <SelectItem className={selectStyles.item} value="processing">Processing</SelectItem>
                               <SelectItem className={selectStyles.item} value="shipped">Shipped</SelectItem>
