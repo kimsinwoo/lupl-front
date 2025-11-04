@@ -356,7 +356,7 @@ export function ProductDetail() {
                 <span className="text-white/50 text-sm">{language === 'ko' ? '리뷰를 불러오는 중...' : 'Loading reviews...'}</span>
               ) : reviews.length > 0 && averageRating > 0 ? (
                 <>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 text-white">
                     {[1, 2, 3, 4, 5].map((rating) => (
                       <Star
                         key={rating}
@@ -374,7 +374,7 @@ export function ProductDetail() {
                 </>
               ) : (
                 <>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 text-white">
                     {[1, 2, 3, 4, 5].map((rating) => (
                       <Star
                         key={rating}
