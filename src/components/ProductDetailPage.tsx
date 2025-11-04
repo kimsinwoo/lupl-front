@@ -33,8 +33,10 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
   const [isLoadingReviews, setIsLoadingReviews] = useState(false);
   
   useEffect(() => {
+    if (!productId) return;
     loadProduct();
     loadReviews();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId]);
   
   const loadProduct = async () => {
@@ -105,6 +107,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
   };
   
   const loadReviews = async () => {
+    if (!productId) return;
+    
     try {
       setIsLoadingReviews(true);
       const response = await reviewService.getProductReviews(productId);
@@ -112,28 +116,26 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
       // API 응답 구조 확인 및 파싱
       let reviewsData: Review[] = [];
       
-      // 응답이 배열인 경우
       if (Array.isArray(response)) {
         reviewsData = response;
-      }
-      // 응답이 { success: true, data: Review[] } 형식인 경우
-      else if (response?.data && Array.isArray(response.data)) {
-        reviewsData = response.data;
-      }
-      // 응답이 { data: { data: Review[] } } 형식인 경우
-      else if (response?.data?.data && Array.isArray(response.data.data)) {
-        reviewsData = response.data.data;
+      } else if (response && typeof response === 'object') {
+        // { success: true, data: Review[] } 형식
+        if (Array.isArray(response.data)) {
+          reviewsData = response.data;
+        } 
+        // { data: { data: Review[] } } 형식
+        else if (response.data && Array.isArray(response.data.data)) {
+          reviewsData = response.data.data;
+        }
       }
       
-      console.log('Loaded reviews:', reviewsData);
-      setReviews(reviewsData);
+      setReviews(reviewsData || []);
       
       // 평균 별점 계산
-      if (reviewsData.length > 0) {
+      if (reviewsData && reviewsData.length > 0) {
         const sum = reviewsData.reduce((acc: number, review: Review) => acc + (review.rating || 0), 0);
         const avg = sum / reviewsData.length;
-        setAverageRating(avg);
-        console.log('Average rating calculated:', avg);
+        setAverageRating(Number(avg.toFixed(1)));
       } else {
         setAverageRating(0);
       }
@@ -331,9 +333,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
                 ${product.price}
               </p>
               
-              {/* 평균 별점 표시 */}
-              {reviews.length > 0 && averageRating > 0 && (
-                <div className="flex items-center gap-2 mb-4">
+              {/* 리뷰 섹션 - 항상 표시 */}
+              <div className="flex items-center gap-2 mb-4">
+                {isLoadingReviews ? (
+                  <div className="text-white/50 text-sm">리뷰를 불러오는 중...</div>
+                ) : reviews.length > 0 && averageRating > 0 ? (
                   <button
                     onClick={() => setIsReviewsDialogOpen(true)}
                     className="flex items-center gap-1 hover:opacity-80 transition-opacity cursor-pointer"
@@ -354,11 +358,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
                       ({averageRating.toFixed(1)}) {reviews.length}개 리뷰
                     </span>
                   </button>
-                </div>
-              )}
-              {/* 리뷰가 없을 때도 리뷰 보기 버튼 표시 */}
-              {reviews.length === 0 && !isLoadingReviews && (
-                <div className="flex items-center gap-2 mb-4">
+                ) : (
                   <button
                     onClick={() => setIsReviewsDialogOpen(true)}
                     className="flex items-center gap-1 hover:opacity-80 transition-opacity cursor-pointer"
@@ -375,8 +375,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
                       아직 리뷰가 없습니다
                     </span>
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {/* Size Selection */}
