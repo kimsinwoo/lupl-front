@@ -85,7 +85,7 @@ export const CheckoutSuccessPage = () => {
             <Button
               onClick={() => navigate('/')}
               variant="outline"
-              className="px-8 py-5 border-white/20 text-white hover:bg-white/10 tracking-[0.15em]"
+              className="px-8 py-5 border-white/20 text-black hover:bg-white/10 tracking-[0.15em]"
             >
               {t('checkout.continueShopping')}
             </Button>

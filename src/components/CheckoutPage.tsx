@@ -567,7 +567,7 @@ export const CheckoutPage = ({ onNavigate }: CheckoutPageProps) => {
                   <Button
                     onClick={() => setStep(1)}
                     variant="outline"
-                    className="flex-1 py-5 sm:py-6 border-black/20 tracking-[0.15em] text-sm sm:text-base"
+                    className="flex-1 py-5 sm:py-6 border-black/20 tracking-[0.15em] text-sm sm:text-base text-black"
                   >
                     {t('checkout.back')}
                   </Button>
