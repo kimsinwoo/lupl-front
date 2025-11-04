@@ -136,53 +136,37 @@ export function ProductDetail() {
   };
 
   const loadReviews = async () => {
-    if (!id) {
-      console.warn('⚠️ No product ID provided for reviews');
-      return;
-    }
+    if (!id) return;
     
     try {
       setIsLoadingReviews(true);
       console.log('🔍 Loading reviews for productId:', id);
-      
       const response: any = await reviewService.getProductReviews(id);
-      console.log('📦 Raw API response:', JSON.stringify(response, null, 2));
+      console.log('📦 Raw API response:', response);
       
       // API 응답 구조: { success: true, data: Review[] }
-      // api.get()은 axios response.data를 반환하므로 이미 { success: true, data: [...] } 형태
+      // api.get은 response.data를 반환하므로, 실제 응답은 { success: true, data: [...] }
       let reviewsData: Review[] = [];
       
-      // 모든 가능한 응답 구조 처리
-      if (response) {
-        if (response.success && Array.isArray(response.data)) {
-          // 표준 응답: { success: true, data: [...] }
-          reviewsData = response.data;
-        } else if (Array.isArray(response)) {
-          // 배열이 직접 반환된 경우
-          reviewsData = response;
-        } else if (Array.isArray(response.data)) {
-          // data 필드가 배열인 경우 (success 없음)
-          reviewsData = response.data;
-        }
+      if (response && response.success && Array.isArray(response.data)) {
+        // 정상 응답: { success: true, data: [...] }
+        reviewsData = response.data;
+        console.log('✅ Parsed reviews (success.data):', reviewsData);
+      } else if (Array.isArray(response)) {
+        // 배열이 직접 반환된 경우
+        reviewsData = response;
+        console.log('✅ Parsed reviews (direct array):', reviewsData);
+      } else if (response && typeof response === 'object' && Array.isArray(response.data)) {
+        // data 필드가 배열인 경우
+        reviewsData = response.data;
+        console.log('✅ Parsed reviews (response.data):', reviewsData);
+      } else {
+        console.warn('⚠️ Unexpected response structure:', response);
       }
       
-      console.log('✅ Parsed reviews array:', reviewsData);
-      console.log('📊 Reviews count:', reviewsData?.length || 0);
-      
-      // 현재 제품에 대한 리뷰만 필터링 (백엔드에서 이미 필터링하지만 안전장치)
-      const filteredReviews = (reviewsData || []).filter((review: Review) => {
-        const matches = review.productId === id;
-        if (!matches && review.productId) {
-          console.warn('⚠️ Review productId mismatch:', review.productId, 'vs', id);
-        }
-        return matches;
-      });
-      
-      console.log('🔎 Filtered reviews for productId', id, ':', filteredReviews.length);
-      
-      if (filteredReviews.length > 0) {
-        console.log('⭐ Reviews found:', filteredReviews.map(r => ({ id: r.id, rating: r.rating, userName: r.userName })));
-      }
+      // 현재 제품에 대한 리뷰만 필터링
+      const filteredReviews = (reviewsData || []).filter((review: Review) => review.productId === id);
+      console.log('🔎 Filtered reviews for productId', id, ':', filteredReviews);
       
       setReviews(filteredReviews);
       
@@ -197,12 +181,11 @@ export function ProductDetail() {
         console.log('⭐ Average rating:', roundedAvg, 'from', filteredReviews.length, 'reviews');
         setAverageRating(roundedAvg);
       } else {
-        console.log('📭 No reviews found for this product');
+        console.log('📭 No reviews found');
         setAverageRating(0);
       }
     } catch (error: any) {
       console.error('❌ Failed to load reviews:', error);
-      console.error('Error details:', error.response?.data || error.message);
       setReviews([]);
       setAverageRating(0);
     } finally {
