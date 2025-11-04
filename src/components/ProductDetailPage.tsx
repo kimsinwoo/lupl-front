@@ -334,48 +334,47 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
               </p>
               
               {/* 리뷰 섹션 - 항상 표시 */}
-              <div className="flex items-center gap-2 mb-4">
-                {isLoadingReviews ? (
-                  <div className="text-white/50 text-sm">리뷰를 불러오는 중...</div>
-                ) : reviews.length > 0 && averageRating > 0 ? (
-                  <button
-                    onClick={() => setIsReviewsDialogOpen(true)}
-                    className="flex items-center gap-1 hover:opacity-80 transition-opacity cursor-pointer"
-                  >
-                    <div className="flex items-center gap-1">
-                      {[1, 2, 3, 4, 5].map((rating) => (
-                        <Star
-                          key={rating}
-                          className={`w-5 h-5 ${
-                            rating <= Math.round(averageRating)
-                              ? 'fill-yellow-400 text-yellow-400'
-                              : 'text-white/30'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-white/70 text-sm ml-1">
-                      ({averageRating.toFixed(1)}) {reviews.length}개 리뷰
-                    </span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setIsReviewsDialogOpen(true)}
-                    className="flex items-center gap-1 hover:opacity-80 transition-opacity cursor-pointer"
-                  >
-                    <div className="flex items-center gap-1">
-                      {[1, 2, 3, 4, 5].map((rating) => (
-                        <Star
-                          key={rating}
-                          className="w-5 h-5 text-white/30"
-                        />
-                      ))}
-                    </div>
-                    <span className="text-white/50 text-sm ml-1">
-                      아직 리뷰가 없습니다
-                    </span>
-                  </button>
-                )}
+              <div className="mb-4">
+                <button
+                  onClick={() => setIsReviewsDialogOpen(true)}
+                  className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer bg-white/5 px-3 py-2 rounded"
+                >
+                  {isLoadingReviews ? (
+                    <span className="text-white/50 text-sm">리뷰를 불러오는 중...</span>
+                  ) : reviews.length > 0 && averageRating > 0 ? (
+                    <>
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((rating) => (
+                          <Star
+                            key={rating}
+                            className={`w-5 h-5 ${
+                              rating <= Math.round(averageRating)
+                                ? 'fill-yellow-400 text-yellow-400'
+                                : 'text-white/30'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-white/70 text-sm">
+                        ({averageRating.toFixed(1)}) {reviews.length}개 리뷰
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((rating) => (
+                          <Star
+                            key={rating}
+                            className="w-5 h-5 text-white/30"
+                          />
+                        ))}
+                      </div>
+                      <span className="text-white/50 text-sm">
+                        아직 리뷰가 없습니다
+                      </span>
+                    </>
+                  )}
+                </button>
               </div>
             </div>
 
