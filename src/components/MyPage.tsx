@@ -787,27 +787,27 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
       
       {/* 리뷰 작성 다이얼로그 */}
       <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
-        <DialogContent className="bg-black border-white/20 text-white max-w-md">
+        <DialogContent className="bg-white/10 border-white/20 text-white w-[512px] max-w-[95vw] rounded-2xl shadow-lg border ring-1 ring-white/5">
           <DialogHeader>
-            <DialogTitle className="text-white">리뷰 작성</DialogTitle>
-            <DialogDescription className="text-white/70">
+            <DialogTitle className="text-white text-xl tracking-wide">리뷰 작성</DialogTitle>
+            <DialogDescription className="text-white/70 text-sm">
               {selectedProductForReview?.productName}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 mt-4">
+          <div className="space-y-6 mt-6">
             {/* 별점 선택 */}
             <div>
-              <Label className="text-white mb-2 block">별점</Label>
+              <Label className="text-white mb-3 block text-sm tracking-wide">별점</Label>
               <div className="flex gap-2">
                 {[1, 2, 3, 4, 5].map((rating) => (
                   <button
                     key={rating}
                     type="button"
                     onClick={() => setReviewRating(rating)}
-                    className="focus:outline-none"
+                    className="focus:outline-none transition-transform hover:scale-110"
                   >
                     <Star
-                      className={`w-6 h-6 ${
+                      className={`w-7 h-7 ${
                         rating <= reviewRating
                           ? 'fill-yellow-400 text-yellow-400'
                           : 'text-white/30'
@@ -820,7 +820,7 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
             
             {/* 리뷰 내용 */}
             <div>
-              <Label htmlFor="review-comment" className="text-white mb-2 block">
+              <Label htmlFor="review-comment" className="text-white mb-3 block text-sm tracking-wide">
                 리뷰 내용
               </Label>
               <Textarea
@@ -828,22 +828,22 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
                 value={reviewComment}
                 onChange={(e) => setReviewComment(e.target.value)}
                 placeholder="리뷰를 작성해주세요"
-                className="bg-white/5 border-white/20 text-white placeholder:text-white/30 min-h-[120px]"
+                className="bg-white/5 border-white/20 text-white placeholder:text-white/40 min-h-[120px] focus-visible:ring-2 focus-visible:ring-[#5842FF]/50"
               />
             </div>
             
             {/* 버튼 */}
-            <div className="flex gap-2 pt-2">
+            <div className="flex gap-3 pt-2">
               <Button
                 onClick={handleSubmitReview}
-                className="flex-1 bg-[#5842FF] hover:bg-[#5842FF]/80 text-white"
+                className="flex-1 bg-[#5842FF] hover:bg-[#5842FF]/80 text-white tracking-wide"
               >
                 작성 완료
               </Button>
               <Button
                 onClick={() => setIsReviewDialogOpen(false)}
                 variant="outline"
-                className="flex-1 border-white/20 text-white hover:bg-white/10"
+                className="flex-1 border-white/20 text-white hover:bg-white/10 tracking-wide"
               >
                 취소
               </Button>
