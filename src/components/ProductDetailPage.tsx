@@ -108,14 +108,32 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
     try {
       setIsLoadingReviews(true);
       const response = await reviewService.getProductReviews(productId);
-      const reviewsData = Array.isArray(response?.data) ? response.data : (response?.data?.data || []);
+      
+      // API 응답 구조 확인 및 파싱
+      let reviewsData: Review[] = [];
+      
+      // 응답이 배열인 경우
+      if (Array.isArray(response)) {
+        reviewsData = response;
+      }
+      // 응답이 { success: true, data: Review[] } 형식인 경우
+      else if (response?.data && Array.isArray(response.data)) {
+        reviewsData = response.data;
+      }
+      // 응답이 { data: { data: Review[] } } 형식인 경우
+      else if (response?.data?.data && Array.isArray(response.data.data)) {
+        reviewsData = response.data.data;
+      }
+      
+      console.log('Loaded reviews:', reviewsData);
       setReviews(reviewsData);
       
       // 평균 별점 계산
       if (reviewsData.length > 0) {
-        const sum = reviewsData.reduce((acc: number, review: Review) => acc + review.rating, 0);
+        const sum = reviewsData.reduce((acc: number, review: Review) => acc + (review.rating || 0), 0);
         const avg = sum / reviewsData.length;
         setAverageRating(avg);
+        console.log('Average rating calculated:', avg);
       } else {
         setAverageRating(0);
       }
@@ -314,7 +332,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
               </p>
               
               {/* 평균 별점 표시 */}
-              {averageRating > 0 && (
+              {reviews.length > 0 && averageRating > 0 && (
                 <div className="flex items-center gap-2 mb-4">
                   <button
                     onClick={() => setIsReviewsDialogOpen(true)}
@@ -334,6 +352,27 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
                     </div>
                     <span className="text-white/70 text-sm ml-1">
                       ({averageRating.toFixed(1)}) {reviews.length}개 리뷰
+                    </span>
+                  </button>
+                </div>
+              )}
+              {/* 리뷰가 없을 때도 리뷰 보기 버튼 표시 */}
+              {reviews.length === 0 && !isLoadingReviews && (
+                <div className="flex items-center gap-2 mb-4">
+                  <button
+                    onClick={() => setIsReviewsDialogOpen(true)}
+                    className="flex items-center gap-1 hover:opacity-80 transition-opacity cursor-pointer"
+                  >
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((rating) => (
+                        <Star
+                          key={rating}
+                          className="w-5 h-5 text-white/30"
+                        />
+                      ))}
+                    </div>
+                    <span className="text-white/50 text-sm ml-1">
+                      아직 리뷰가 없습니다
                     </span>
                   </button>
                 </div>
