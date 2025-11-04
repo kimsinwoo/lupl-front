@@ -363,7 +363,7 @@ export function ProductDetail() {
                         className={`w-5 h-5 ${
                           rating <= Math.round(averageRating)
                             ? 'fill-yellow-400 text-yellow-400'
-                            : 'text-white/30'
+                            : 'text-white'
                         }`}
                       />
                     ))}
@@ -505,20 +505,20 @@ export function ProductDetail() {
                             className={`w-4 h-4 ${
                               rating <= review.rating
                                 ? 'fill-yellow-400 text-yellow-400'
-                                : 'text-white/30'
+                                : 'text-white'
                             }`}
                           />
                         ))}
                       </div>
-                      <span className="text-white/70 text-sm">
+                      <span className="text-black text-sm">
                         {review.userName || (language === 'ko' ? '익명' : 'Anonymous')}
                       </span>
                     </div>
-                    <span className="text-white/50 text-xs">
+                    <span className="text-black text-xs">
                       {new Date(review.createdAt).toLocaleDateString()}
                     </span>
                   </div>
-                  <p className="text-white/90 text-sm leading-relaxed">{review.comment}</p>
+                  <p className="text-black text-sm leading-relaxed">{review.comment}</p>
                 </div>
               ))
             )}
