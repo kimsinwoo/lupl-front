@@ -292,7 +292,9 @@ export function ProductDetail() {
               <h1 className="text-white flex-1">{product.title || product.name}</h1>
               <button
                 onClick={() => toggleFavorite(product.id)}
-                className="p-2 bg-white/5 hover:bg-white/10 rounded-full transition-all ml-4"
+                className={`p-2 rounded-full transition-all ml-4
+                  ${isFavorite(product.id) ? 'bg-red-100/10 hover:bg-red-100/20' : 'bg-white/5 hover:bg-white/10'}
+                `}
                 aria-label={isFavorite(product.id) ? 'Remove from favorites' : 'Add to favorites'}
               >
                 <Heart 
