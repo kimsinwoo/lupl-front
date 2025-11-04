@@ -362,7 +362,7 @@ export function ProductDetail() {
                         key={rating}
                         className={`w-5 h-5 ${
                           rating <= Math.round(averageRating)
-                            ? 'fill-yellow-400 text-yellow-400'
+                            ? 'fill-yellow text-yellow'
                             : 'text-white'
                         }`}
                       />
