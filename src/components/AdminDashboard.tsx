@@ -253,18 +253,18 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
     <div className="min-h-screen bg-gray-50 pt-24 sm:pt-32 pb-16 sm:pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 sm:mb-16 gap-4">
+        <div className="flex items-center justify-between mb-16">
           <div>
-            <h1 className="text-2xl sm:text-3xl tracking-[0.2em] mb-2">ADMIN DASHBOARD</h1>
-            <p className="text-xs sm:text-sm text-muted-foreground tracking-[0.15em]">
+            <h1 className="text-3xl tracking-[0.2em] mb-2">ADMIN DASHBOARD</h1>
+            <p className="text-sm text-muted-foreground tracking-[0.15em]">
               Manage your KITAE store
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-stretch sm:items-center w-full sm:w-auto">
+          <div className="flex gap-4 items-center">
             <Button
               onClick={refreshData}
               variant="outline"
-              className="tracking-[0.15em] text-sm"
+              className="tracking-[0.15em]"
               disabled={isLoading}
             >
               {isLoading ? 'Refreshing...' : 'Refresh'}
@@ -272,7 +272,7 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
             <Button
               onClick={handleLogout}
               variant="outline"
-              className="tracking-[0.15em] gap-2 text-sm"
+              className="tracking-[0.15em] gap-2"
             >
               <LogOut className="w-4 h-4" />
               LOGOUT
@@ -281,37 +281,37 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12">
-          <div className="bg-white p-4 sm:p-8 shadow-sm">
-            <div className="flex items-center justify-between mb-2 sm:mb-4">
-              <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+          <div className="bg-white p-8 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <DollarSign className="w-8 h-8 text-green-600" />
             </div>
-            <p className="text-xs sm:text-sm text-muted-foreground tracking-[0.1em] mb-2">TOTAL REVENUE</p>
-            <p className="text-xl sm:text-2xl tracking-[0.1em]">${totalRevenue.toLocaleString()}</p>
+            <p className="text-sm text-muted-foreground tracking-[0.1em] mb-2">TOTAL REVENUE</p>
+            <p className="text-2xl tracking-[0.1em]">${totalRevenue.toLocaleString()}</p>
           </div>
 
-          <div className="bg-white p-4 sm:p-8 shadow-sm">
-            <div className="flex items-center justify-between mb-2 sm:mb-4">
-              <ShoppingCart className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
+          <div className="bg-white p-8 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <ShoppingCart className="w-8 h-8 text-blue-600" />
             </div>
-            <p className="text-xs sm:text-sm text-muted-foreground tracking-[0.1em] mb-2">TOTAL ORDERS</p>
-            <p className="text-xl sm:text-2xl tracking-[0.1em]">{orders.length}</p>
+            <p className="text-sm text-muted-foreground tracking-[0.1em] mb-2">TOTAL ORDERS</p>
+            <p className="text-2xl tracking-[0.1em]">{orders.length}</p>
           </div>
 
-          <div className="bg-white p-4 sm:p-8 shadow-sm">
-            <div className="flex items-center justify-between mb-2 sm:mb-4">
-              <Package className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
+          <div className="bg-white p-8 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <Package className="w-8 h-8 text-purple-600" />
             </div>
-            <p className="text-xs sm:text-sm text-muted-foreground tracking-[0.1em] mb-2">PRODUCTS</p>
-            <p className="text-xl sm:text-2xl tracking-[0.1em]">{totalProducts}</p>
+            <p className="text-sm text-muted-foreground tracking-[0.1em] mb-2">PRODUCTS</p>
+            <p className="text-2xl tracking-[0.1em]">{totalProducts}</p>
           </div>
 
-          <div className="bg-white p-4 sm:p-8 shadow-sm">
-            <div className="flex items-center justify-between mb-2 sm:mb-4">
-              <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-orange-600" />
+          <div className="bg-white p-8 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <TrendingUp className="w-8 h-8 text-orange-600" />
             </div>
-            <p className="text-xs sm:text-sm text-muted-foreground tracking-[0.1em] mb-2">PENDING ORDERS</p>
-            <p className="text-xl sm:text-2xl tracking-[0.1em]">{pendingOrders}</p>
+            <p className="text-sm text-muted-foreground tracking-[0.1em] mb-2">PENDING ORDERS</p>
+            <p className="text-2xl tracking-[0.1em]">{pendingOrders}</p>
           </div>
         </div>
 
@@ -426,7 +426,58 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
               </Dialog>
             </div>
 
-            <div className="bg-white shadow-sm">
+            {/* Mobile: Card View */}
+            <div className="block sm:hidden space-y-4">
+              {products.map((product) => (
+                <div key={product.id} className="bg-white shadow-sm rounded-lg p-4 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-20 h-20 object-cover rounded flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium tracking-[0.05em] truncate text-sm">{product.name}</h3>
+                      <div className="mt-1 space-y-1">
+                        <p className="text-xs text-muted-foreground uppercase tracking-[0.1em]">
+                          {product.category}
+                        </p>
+                        <p className="text-lg font-semibold">${product.price}</p>
+                        <p className="text-xs text-muted-foreground uppercase tracking-[0.1em]">
+                          {product.gender}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 pt-2 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 text-xs"
+                      onClick={() => {
+                        setEditingProduct(product);
+                        setIsEditDialogOpen(true);
+                      }}
+                    >
+                      <Edit className="w-3 h-3 mr-1" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 text-xs"
+                      onClick={() => handleDeleteProduct(product.id)}
+                    >
+                      <Trash2 className="w-3 h-3 mr-1" />
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: Table View */}
+            <div className="hidden sm:block bg-white shadow-sm overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -489,7 +540,77 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
           <TabsContent value="orders" className="space-y-6">
             <h2 className="text-xl tracking-[0.15em]">ORDER MANAGEMENT</h2>
 
-            <div className="bg-white shadow-sm">
+            {/* Mobile: Card View */}
+            <div className="block sm:hidden space-y-4">
+              {orders.map((order) => (
+                <div 
+                  key={order.id}
+                  className="bg-white shadow-sm rounded-lg p-4 space-y-3 cursor-pointer hover:bg-gray-50"
+                  onClick={() => {
+                    setSelectedOrder(order);
+                    setIsOrderDialogOpen(true);
+                  }}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-muted-foreground tracking-[0.1em] mb-1">ORDER ID</p>
+                      <p className="font-medium text-sm truncate">{order.id}</p>
+                    </div>
+                    <Badge className={`${getStatusColor(order.status)} text-xs flex-shrink-0`}>
+                      {order.status.toUpperCase()}
+                    </Badge>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Date</p>
+                      <p className="text-xs">{order.date}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Total</p>
+                      <p className="font-semibold">${((order.total ?? 0) / 1300).toFixed(2)}</p>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Customer</p>
+                    <p className="text-sm font-medium truncate">{order.customerName}</p>
+                    <p className="text-xs text-muted-foreground truncate">{order.email}</p>
+                  </div>
+                  
+                  <div className="flex items-center justify-between pt-2 border-t gap-2">
+                    {order.paymentStatus === 'paid' ? (
+                      <>
+                        <Badge className="bg-green-100 text-green-800 text-xs flex-shrink-0">PAID</Badge>
+                        <Select
+                          defaultValue={order.status}
+                          onValueChange={(value) => handleOrderStatusChange(order.id, value)}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <SelectTrigger className="h-8 text-xs w-full sm:w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className={selectStyles.content}>
+                            <SelectItem className={selectStyles.item} value="pending">Pending</SelectItem>
+                            <SelectItem className={selectStyles.item} value="processing">Processing</SelectItem>
+                            <SelectItem className={selectStyles.item} value="shipped">Shipped</SelectItem>
+                            <SelectItem className={selectStyles.item} value="delivered">Delivered</SelectItem>
+                            <SelectItem className={selectStyles.item} value="cancelled">Cancelled</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </>
+                    ) : (
+                      <Badge variant="outline" className="bg-gray-100 text-gray-600 text-xs w-full text-center">
+                        결제 대기
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: Table View */}
+            <div className="hidden sm:block bg-white shadow-sm overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -498,6 +619,7 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
                     <TableHead>CUSTOMER</TableHead>
                     <TableHead>TOTAL</TableHead>
                     <TableHead>STATUS</TableHead>
+                    <TableHead>PAYMENT</TableHead>
                     <TableHead className="text-right">ACTIONS</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -545,7 +667,6 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
                             <SelectTrigger className={selectStyles.trigger}>
                               <SelectValue />
                             </SelectTrigger>
-                            {/* 팝퍼 포지션: 테이블 경계 넘겨 겹침/잘림 방지 */}
                             <SelectContent
                               className={selectStyles.content}
                               position="popper"
@@ -575,26 +696,26 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
 
         {/* Order Detail Dialog */}
         <Dialog open={isOrderDialogOpen} onOpenChange={setIsOrderDialogOpen}>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="tracking-[0.15em] text-lg sm:text-xl">ORDER DETAILS</DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm">
+              <DialogTitle className="tracking-[0.15em]">ORDER DETAILS</DialogTitle>
+              <DialogDescription>
                 Order ID: {selectedOrder?.id || selectedOrder?.orderNumber}
               </DialogDescription>
             </DialogHeader>
             {selectedOrder && (
-              <div className="space-y-4 sm:space-y-6">
+              <div className="space-y-6">
                 {/* Customer Information */}
                 <div className="space-y-3">
-                  <h3 className="text-base sm:text-lg font-semibold tracking-[0.1em]">CUSTOMER INFORMATION</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
+                  <h3 className="text-lg font-semibold tracking-[0.1em]">CUSTOMER INFORMATION</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className="text-muted-foreground">Name</p>
                       <p className="font-medium">{selectedOrder.customerName || selectedOrder.shippingName}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Email</p>
-                      <p className="font-medium break-words">{selectedOrder.email}</p>
+                      <p className="font-medium">{selectedOrder.email}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Phone</p>
@@ -605,8 +726,8 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
 
                 {/* Shipping Address */}
                 <div className="space-y-3">
-                  <h3 className="text-base sm:text-lg font-semibold tracking-[0.1em]">SHIPPING ADDRESS</h3>
-                  <div className="bg-gray-50 p-3 sm:p-4 rounded-lg space-y-2 text-xs sm:text-sm">
+                  <h3 className="text-lg font-semibold tracking-[0.1em]">SHIPPING ADDRESS</h3>
+                  <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
                     <p className="font-medium">{selectedOrder.shippingName || selectedOrder.customerName}</p>
                     <p>{selectedOrder.shippingAddress1 || 'N/A'}</p>
                     {selectedOrder.shippingAddress2 && (
@@ -620,40 +741,40 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
 
                 {/* Order Items */}
                 <div className="space-y-3">
-                  <h3 className="text-base sm:text-lg font-semibold tracking-[0.1em]">ORDER ITEMS</h3>
+                  <h3 className="text-lg font-semibold tracking-[0.1em]">ORDER ITEMS</h3>
                   <div className="space-y-3">
                     {selectedOrder.items && selectedOrder.items.length > 0 ? (
                       selectedOrder.items.map((item: any, index: number) => (
-                        <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-3 bg-gray-50 rounded-lg">
-                          <div className="flex-1 w-full">
-                            <p className="font-medium text-xs sm:text-sm">{item.productName}</p>
-                            <p className="text-xs text-muted-foreground">
+                        <div key={index} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                          <div className="flex-1">
+                            <p className="font-medium">{item.productName}</p>
+                            <p className="text-sm text-muted-foreground">
                               {item.size} / {item.color} - Qty: {item.quantity}
                             </p>
                           </div>
-                          <p className="font-semibold text-sm sm:text-base">${((item.price || 0) / 1300).toFixed(2)}</p>
+                          <p className="font-semibold">${((item.price || 0) / 1300).toFixed(2)}</p>
                         </div>
                       ))
                     ) : (
-                      <p className="text-muted-foreground text-xs sm:text-sm">No items found</p>
+                      <p className="text-muted-foreground">No items found</p>
                     )}
                   </div>
                 </div>
 
                 {/* Order Summary */}
                 <div className="space-y-3 border-t pt-4">
-                  <div className="flex justify-between text-base sm:text-lg font-semibold">
+                  <div className="flex justify-between text-lg font-semibold">
                     <span>Total</span>
                     <span>${((selectedOrder.total ?? 0) / 1300).toFixed(2)}</span>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge className={`${getStatusColor(selectedOrder.status)} text-xs`}>
+                  <div className="flex gap-2">
+                    <Badge className={getStatusColor(selectedOrder.status)}>
                       {selectedOrder.status.toUpperCase()}
                     </Badge>
                     {selectedOrder.paymentStatus === 'paid' ? (
-                      <Badge className="bg-green-100 text-green-800 text-xs">PAID</Badge>
+                      <Badge className="bg-green-100 text-green-800">PAID</Badge>
                     ) : (
-                      <Badge variant="outline" className="bg-yellow-100 text-yellow-800 text-xs">PENDING</Badge>
+                      <Badge variant="outline" className="bg-yellow-100 text-yellow-800">PENDING</Badge>
                     )}
                   </div>
                 </div>
@@ -665,55 +786,52 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
         {/* Edit Product Dialog */}
         {editingProduct && (
           <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle className="tracking-[0.15em] text-lg sm:text-xl">EDIT PRODUCT</DialogTitle>
-                <DialogDescription className="text-xs sm:text-sm">
+                <DialogTitle className="tracking-[0.15em]">EDIT PRODUCT</DialogTitle>
+                <DialogDescription>
                   Update product information
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleUpdateProduct} className="space-y-4 sm:space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <form onSubmit={handleUpdateProduct} className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="edit-name" className="text-sm">Product Name</Label>
+                    <Label htmlFor="edit-name">Product Name</Label>
                     <Input
                       id="edit-name"
                       name="name"
                       defaultValue={editingProduct.name}
                       required
-                      className="text-sm"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="edit-price" className="text-sm">Price ($)</Label>
+                    <Label htmlFor="edit-price">Price ($)</Label>
                     <Input
                       id="edit-price"
                       name="price"
                       type="number"
                       defaultValue={editingProduct.price}
                       required
-                      className="text-sm"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="edit-image" className="text-sm">Image URL</Label>
+                  <Label htmlFor="edit-image">Image URL</Label>
                   <Input
                     id="edit-image"
                     name="image"
                     type="url"
                     defaultValue={editingProduct.image}
                     required
-                    className="text-sm"
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="edit-category" className="text-sm">Category</Label>
+                    <Label htmlFor="edit-category">Category</Label>
                     <Select name="category" defaultValue={editingProduct.category}>
-                      <SelectTrigger className={`${selectStyles.trigger} text-sm`}>
+                      <SelectTrigger className={selectStyles.trigger}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className={selectStyles.content} position="popper" sideOffset={8}>
@@ -725,9 +843,9 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="edit-gender" className="text-sm">Gender</Label>
+                    <Label htmlFor="edit-gender">Gender</Label>
                     <Select name="gender" defaultValue={editingProduct.gender}>
-                      <SelectTrigger className={`${selectStyles.trigger} text-sm`}>
+                      <SelectTrigger className={selectStyles.trigger}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className={selectStyles.content} position="popper" sideOffset={8}>
@@ -739,63 +857,58 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="edit-sizes" className="text-sm">Sizes (comma separated)</Label>
+                    <Label htmlFor="edit-sizes">Sizes (comma separated)</Label>
                     <Input
                       id="edit-sizes"
                       name="sizes"
                       defaultValue={editingProduct.sizes.join(', ')}
                       required
-                      className="text-sm"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="edit-colors" className="text-sm">Colors (comma separated)</Label>
+                    <Label htmlFor="edit-colors">Colors (comma separated)</Label>
                     <Input
                       id="edit-colors"
                       name="colors"
                       defaultValue={editingProduct.colors.join(', ')}
                       required
-                      className="text-sm"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="edit-description" className="text-sm">Description</Label>
+                  <Label htmlFor="edit-description">Description</Label>
                   <Textarea
                     id="edit-description"
                     name="description"
                     defaultValue={editingProduct.description}
                     required
-                    className="text-sm min-h-[100px]"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="edit-careInfo" className="text-sm">Care Information</Label>
+                  <Label htmlFor="edit-careInfo">Care Information</Label>
                   <Input
                     id="edit-careInfo"
                     name="careInfo"
                     defaultValue={editingProduct.careInfo}
                     required
-                    className="text-sm"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="edit-composition" className="text-sm">Composition</Label>
+                  <Label htmlFor="edit-composition">Composition</Label>
                   <Input
                     id="edit-composition"
                     name="composition"
                     defaultValue={editingProduct.composition}
                     required
-                    className="text-sm"
                   />
                 </div>
 
-                <Button type="submit" className="w-full tracking-[0.15em] text-sm">
+                <Button type="submit" className="w-full tracking-[0.15em]">
                   UPDATE PRODUCT
                 </Button>
               </form>
