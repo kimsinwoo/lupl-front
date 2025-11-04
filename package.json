@@ -59,6 +59,6 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build --force --mode production"
+    "build": "npx vite build --force --mode production"
   }
 }
