@@ -578,26 +578,36 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
                     <p className="text-xs text-muted-foreground truncate">{order.email}</p>
                   </div>
                   
-                  <div className="flex items-center justify-between pt-2 border-t gap-2">
+                  <div 
+                    className="flex items-center justify-between pt-2 border-t gap-2"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     {order.paymentStatus === 'paid' ? (
                       <>
                         <Badge className="bg-green-100 text-green-800 text-xs flex-shrink-0">PAID</Badge>
-                        <Select
-                          defaultValue={order.status}
-                          onValueChange={(value) => handleOrderStatusChange(order.id, value)}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <SelectTrigger className="h-8 text-xs w-full sm:w-32">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className={selectStyles.content}>
-                            <SelectItem className={selectStyles.item} value="pending">Pending</SelectItem>
-                            <SelectItem className={selectStyles.item} value="processing">Processing</SelectItem>
-                            <SelectItem className={selectStyles.item} value="shipped">Shipped</SelectItem>
-                            <SelectItem className={selectStyles.item} value="delivered">Delivered</SelectItem>
-                            <SelectItem className={selectStyles.item} value="cancelled">Cancelled</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <div className="flex-1" onClick={(e) => e.stopPropagation()}>
+                          <Select
+                            defaultValue={order.status}
+                            onValueChange={(value) => handleOrderStatusChange(order.id, value)}
+                          >
+                            <SelectTrigger 
+                              className="h-8 text-xs w-full sm:w-32"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent 
+                              className={selectStyles.content}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <SelectItem className={selectStyles.item} value="pending">Pending</SelectItem>
+                              <SelectItem className={selectStyles.item} value="processing">Processing</SelectItem>
+                              <SelectItem className={selectStyles.item} value="shipped">Shipped</SelectItem>
+                              <SelectItem className={selectStyles.item} value="delivered">Delivered</SelectItem>
+                              <SelectItem className={selectStyles.item} value="cancelled">Cancelled</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </>
                     ) : (
                       <Badge variant="outline" className="bg-gray-100 text-gray-600 text-xs w-full text-center">
