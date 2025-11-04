@@ -5,9 +5,11 @@ import { useUser } from '../context/UserContext';
 import { Button } from './ui/button';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { productService } from '../services/product.service';
+import { reviewService, Review } from '../services/review.service';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { toast } from 'sonner';
 import { motion } from 'motion/react';
-import { ShoppingBag, Minus, Plus } from 'lucide-react';
+import { ShoppingBag, Minus, Plus, Star } from 'lucide-react';
 
 interface ProductDetailPageProps {
   productId: string;
@@ -25,9 +27,14 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [quantity, setQuantity] = useState<number>(1);
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [averageRating, setAverageRating] = useState<number>(0);
+  const [isReviewsDialogOpen, setIsReviewsDialogOpen] = useState(false);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(false);
   
   useEffect(() => {
     loadProduct();
+    loadReviews();
   }, [productId]);
   
   const loadProduct = async () => {
@@ -94,6 +101,30 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
       toast.error(`상품을 불러올 수 없습니다: ${error.message || 'API 연결 실패'}`);
     } finally {
       setLoading(false);
+    }
+  };
+  
+  const loadReviews = async () => {
+    try {
+      setIsLoadingReviews(true);
+      const response = await reviewService.getProductReviews(productId);
+      const reviewsData = Array.isArray(response?.data) ? response.data : (response?.data?.data || []);
+      setReviews(reviewsData);
+      
+      // 평균 별점 계산
+      if (reviewsData.length > 0) {
+        const sum = reviewsData.reduce((acc: number, review: Review) => acc + review.rating, 0);
+        const avg = sum / reviewsData.length;
+        setAverageRating(avg);
+      } else {
+        setAverageRating(0);
+      }
+    } catch (error: any) {
+      console.error('Failed to load reviews:', error);
+      setReviews([]);
+      setAverageRating(0);
+    } finally {
+      setIsLoadingReviews(false);
     }
   };
 
@@ -278,9 +309,35 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
               <h1 className="text-3xl lg:text-4xl font-bold text-white mb-4">
                 {product.name}
               </h1>
-              <p className="text-2xl lg:text-3xl text-[#5842FF] font-semibold">
+              <p className="text-2xl lg:text-3xl text-[#5842FF] font-semibold mb-3">
                 ${product.price}
               </p>
+              
+              {/* 평균 별점 표시 */}
+              {averageRating > 0 && (
+                <div className="flex items-center gap-2 mb-4">
+                  <button
+                    onClick={() => setIsReviewsDialogOpen(true)}
+                    className="flex items-center gap-1 hover:opacity-80 transition-opacity cursor-pointer"
+                  >
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((rating) => (
+                        <Star
+                          key={rating}
+                          className={`w-5 h-5 ${
+                            rating <= Math.round(averageRating)
+                              ? 'fill-yellow-400 text-yellow-400'
+                              : 'text-white/30'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-white/70 text-sm ml-1">
+                      ({averageRating.toFixed(1)}) {reviews.length}개 리뷰
+                    </span>
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Size Selection */}
@@ -396,6 +453,53 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
           </div>
         </div>
       </div>
+      
+      {/* 리뷰 목록 다이얼로그 */}
+      <Dialog open={isReviewsDialogOpen} onOpenChange={setIsReviewsDialogOpen}>
+        <DialogContent className="bg-black border-white/20 text-white max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white text-xl">리뷰 ({reviews.length}개)</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            {isLoadingReviews ? (
+              <div className="text-center py-8 text-white/70">리뷰를 불러오는 중...</div>
+            ) : reviews.length === 0 ? (
+              <div className="text-center py-8 text-white/70">아직 작성된 리뷰가 없습니다.</div>
+            ) : (
+              reviews.map((review) => (
+                <div
+                  key={review.id}
+                  className="border-b border-white/10 pb-4 last:border-b-0"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center">
+                        {[1, 2, 3, 4, 5].map((rating) => (
+                          <Star
+                            key={rating}
+                            className={`w-4 h-4 ${
+                              rating <= review.rating
+                                ? 'fill-yellow-400 text-yellow-400'
+                                : 'text-white/30'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-white/70 text-sm">
+                        {review.userName || '익명'}
+                      </span>
+                    </div>
+                    <span className="text-white/50 text-xs">
+                      {new Date(review.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <p className="text-white/90 text-sm leading-relaxed">{review.comment}</p>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 };

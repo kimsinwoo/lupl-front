@@ -3,13 +3,16 @@ import { useUser } from '../context/UserContext';
 import { useAdmin } from '../context/AdminContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { orderService } from '../services/order.service';
+import { reviewService } from '../services/review.service';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
+import { Textarea } from './ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Badge } from './ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { ProductCard } from './ProductCard';
-import { User, Package, Heart, Settings } from 'lucide-react';
+import { User, Package, Heart, Settings, Star } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface MyPageProps {
@@ -63,6 +66,13 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
   const [favoriteProducts, setFavoriteProducts] = useState<any[]>([]);
   const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
+  
+  // 리뷰 작성 관련 상태
+  const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+  const [selectedProductForReview, setSelectedProductForReview] = useState<{ productId: string; productName: string; orderId: string } | null>(null);
+  const [reviewRating, setReviewRating] = useState<number>(5);
+  const [reviewComment, setReviewComment] = useState<string>('');
+  const [userReviews, setUserReviews] = useState<Map<string, boolean>>(new Map()); // productId -> hasReview
 
   const [formData, setFormData] = useState({
     name: user?.name ?? '',
@@ -78,11 +88,45 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
     if (user) {
       void loadOrders();
       void loadFavorites();
+      void loadUserReviews();
     } else {
       setFavoriteProducts([]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+  
+  const loadUserReviews = async () => {
+    try {
+      // 주문에 포함된 제품들의 리뷰 작성 여부 확인
+      const reviewsMap = new Map<string, boolean>();
+      for (const order of userOrders) {
+        if (order.status === 'delivered') {
+          for (const item of order.items) {
+            try {
+              const response = await reviewService.getProductReviews(item.productId);
+              const reviews = Array.isArray(response?.data) ? response.data : (response?.data?.data || []);
+              const hasUserReview = reviews.some((review: any) => 
+                review.userId === user?.id && review.orderId === order.id
+              );
+              reviewsMap.set(`${item.productId}-${order.id}`, hasUserReview);
+            } catch (error) {
+              console.error('Failed to check reviews for product:', item.productId, error);
+            }
+          }
+        }
+      }
+      setUserReviews(reviewsMap);
+    } catch (error) {
+      console.error('Failed to load user reviews:', error);
+    }
+  };
+  
+  useEffect(() => {
+    if (userOrders.length > 0 && user) {
+      void loadUserReviews();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userOrders, user]);
 
   const loadFavorites = async () => {
     setIsLoadingFavorites(true);
@@ -314,6 +358,45 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
       default:
         return 'bg-white/10 text-white/70 ring-1 ring-inset ring-white/20';
     }
+  };
+  
+  const handleOpenReviewDialog = (productId: string, productName: string, orderId: string) => {
+    setSelectedProductForReview({ productId, productName, orderId });
+    setReviewRating(5);
+    setReviewComment('');
+    setIsReviewDialogOpen(true);
+  };
+  
+  const handleSubmitReview = async () => {
+    if (!selectedProductForReview) return;
+    
+    if (!reviewComment.trim()) {
+      toast.error('리뷰 내용을 입력해주세요');
+      return;
+    }
+    
+    try {
+      await reviewService.createReview({
+        productId: selectedProductForReview.productId,
+        orderId: selectedProductForReview.orderId,
+        rating: reviewRating,
+        comment: reviewComment,
+      });
+      
+      toast.success('리뷰가 작성되었습니다');
+      setIsReviewDialogOpen(false);
+      setSelectedProductForReview(null);
+      setReviewRating(5);
+      setReviewComment('');
+      await loadUserReviews();
+    } catch (error: any) {
+      console.error('Failed to create review:', error);
+      toast.error(error.response?.data?.message || '리뷰 작성에 실패했습니다');
+    }
+  };
+  
+  const hasReviewed = (productId: string, orderId: string) => {
+    return userReviews.get(`${productId}-${orderId}`) || false;
   };
 
 
@@ -623,6 +706,26 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
                             <span className="text-white/60 text-xs mt-1">
                               {tf('mypage.quantity', 'Qty')}: {item.quantity}
                             </span>
+                            {/* 리뷰 작성 버튼 - DELIVERED 상태일 때만 표시 */}
+                            {order.status === 'delivered' && (
+                              <div className="mt-2">
+                                {hasReviewed(item.productId, order.id) ? (
+                                  <Badge className="bg-green-500/20 text-green-300 text-xs">
+                                    리뷰 작성 완료
+                                  </Badge>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-xs h-7 bg-[#5842FF] border-[#5842FF] text-white hover:bg-[#5842FF]/80"
+                                    onClick={() => handleOpenReviewDialog(item.productId, item.productName, order.id)}
+                                  >
+                                    <Star className="w-3 h-3 mr-1" />
+                                    리뷰 작성
+                                  </Button>
+                                )}
+                              </div>
+                            )}
                           </div>
                            {/* 세부 가격 */}
                            <span className="text-white text-sm sm:text-base font-semibold tabular-nums" style={{ whiteSpace: 'nowrap' }}>
@@ -681,6 +784,73 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
           </TabsContent>
         </Tabs>
       </div>
+      
+      {/* 리뷰 작성 다이얼로그 */}
+      <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
+        <DialogContent className="bg-black border-white/20 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white">리뷰 작성</DialogTitle>
+            <DialogDescription className="text-white/70">
+              {selectedProductForReview?.productName}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            {/* 별점 선택 */}
+            <div>
+              <Label className="text-white mb-2 block">별점</Label>
+              <div className="flex gap-2">
+                {[1, 2, 3, 4, 5].map((rating) => (
+                  <button
+                    key={rating}
+                    type="button"
+                    onClick={() => setReviewRating(rating)}
+                    className="focus:outline-none"
+                  >
+                    <Star
+                      className={`w-6 h-6 ${
+                        rating <= reviewRating
+                          ? 'fill-yellow-400 text-yellow-400'
+                          : 'text-white/30'
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {/* 리뷰 내용 */}
+            <div>
+              <Label htmlFor="review-comment" className="text-white mb-2 block">
+                리뷰 내용
+              </Label>
+              <Textarea
+                id="review-comment"
+                value={reviewComment}
+                onChange={(e) => setReviewComment(e.target.value)}
+                placeholder="리뷰를 작성해주세요"
+                className="bg-white/5 border-white/20 text-white placeholder:text-white/30 min-h-[120px]"
+              />
+            </div>
+            
+            {/* 버튼 */}
+            <div className="flex gap-2 pt-2">
+              <Button
+                onClick={handleSubmitReview}
+                className="flex-1 bg-[#5842FF] hover:bg-[#5842FF]/80 text-white"
+              >
+                작성 완료
+              </Button>
+              <Button
+                onClick={() => setIsReviewDialogOpen(false)}
+                variant="outline"
+                className="flex-1 border-white/20 text-white hover:bg-white/10"
+              >
+                취소
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
