@@ -435,6 +435,7 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
                       src={product.image}
                       alt={product.name}
                       className="w-20 h-20 object-cover rounded flex-shrink-0"
+                      style={{ width: '200px', height: '200px' }}
                     />
                     <div className="flex-1 min-w-0">
                       <h3 className="font-medium tracking-[0.05em] truncate text-sm">{product.name}</h3>
