@@ -429,46 +429,46 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
             {/* Mobile: Card View */}
             <div className="block sm:hidden space-y-4">
               {products.map((product) => (
-                <div key={product.id} className="bg-white shadow-sm rounded-lg p-4 space-y-3">
-                  <div className="flex items-start gap-3">
+                <div key={product.id} className="bg-white shadow-sm rounded-lg p-3 sm:p-4 space-y-2 sm:space-y-3">
+                  <div className="flex items-start gap-2 sm:gap-3">
                     <img
                       src={product.image}
                       alt={product.name}
-                      className="w-20 h-20 object-cover rounded flex-shrink-0"
+                      className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded flex-shrink-0"
                     />
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium tracking-[0.05em] truncate text-sm">{product.name}</h3>
-                      <div className="mt-1 space-y-1">
-                        <p className="text-xs text-muted-foreground uppercase tracking-[0.1em]">
+                      <h3 className="font-medium tracking-[0.05em] truncate text-xs sm:text-sm">{product.name}</h3>
+                      <div className="mt-1 space-y-0.5 sm:space-y-1">
+                        <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-[0.1em]">
                           {product.category}
                         </p>
-                        <p className="text-lg font-semibold">${product.price}</p>
-                        <p className="text-xs text-muted-foreground uppercase tracking-[0.1em]">
+                        <p className="text-base sm:text-lg font-semibold">${product.price}</p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-[0.1em]">
                           {product.gender}
                         </p>
                       </div>
                     </div>
                   </div>
-                  <div className="flex gap-2 pt-2 border-t">
+                  <div className="flex gap-1.5 sm:gap-2 pt-2 border-t">
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1 text-xs"
+                      className="flex-1 text-[10px] sm:text-xs h-8 sm:h-9"
                       onClick={() => {
                         setEditingProduct(product);
                         setIsEditDialogOpen(true);
                       }}
                     >
-                      <Edit className="w-3 h-3 mr-1" />
+                      <Edit className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" />
                       Edit
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1 text-xs"
+                      className="flex-1 text-[10px] sm:text-xs h-8 sm:h-9"
                       onClick={() => handleDeleteProduct(product.id)}
                     >
-                      <Trash2 className="w-3 h-3 mr-1" />
+                      <Trash2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" />
                       Delete
                     </Button>
                   </div>
@@ -481,53 +481,53 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-xs sm:text-sm">IMAGE</TableHead>
-                    <TableHead className="text-xs sm:text-sm">NAME</TableHead>
-                    <TableHead className="text-xs sm:text-sm">CATEGORY</TableHead>
-                    <TableHead className="text-xs sm:text-sm">PRICE</TableHead>
-                    <TableHead className="text-xs sm:text-sm">GENDER</TableHead>
-                    <TableHead className="text-right text-xs sm:text-sm">ACTIONS</TableHead>
+                    <TableHead className="text-[10px] sm:text-xs md:text-sm">IMAGE</TableHead>
+                    <TableHead className="text-[10px] sm:text-xs md:text-sm">NAME</TableHead>
+                    <TableHead className="text-[10px] sm:text-xs md:text-sm">CATEGORY</TableHead>
+                    <TableHead className="text-[10px] sm:text-xs md:text-sm">PRICE</TableHead>
+                    <TableHead className="text-[10px] sm:text-xs md:text-sm">GENDER</TableHead>
+                    <TableHead className="text-right text-[10px] sm:text-xs md:text-sm">ACTIONS</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {products.map((product) => (
                     <TableRow key={product.id}>
-                      <TableCell>
+                      <TableCell className="py-2 sm:py-3">
                         <img
                           src={product.image}
                           alt={product.name}
-                          className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded"
+                          className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 object-cover rounded"
                           style={{ maxWidth: '200px', maxHeight: '200px' }}
                         />
                       </TableCell>
-                      <TableCell className="tracking-[0.05em] text-xs sm:text-sm">{product.name}</TableCell>
-                      <TableCell className="uppercase text-xs tracking-[0.1em]">
+                      <TableCell className="tracking-[0.05em] text-[10px] sm:text-xs md:text-sm py-2 sm:py-3">{product.name}</TableCell>
+                      <TableCell className="uppercase text-[10px] sm:text-xs tracking-[0.1em] py-2 sm:py-3">
                         {product.category}
                       </TableCell>
-                      <TableCell className="text-xs sm:text-sm">${product.price}</TableCell>
-                      <TableCell className="uppercase text-xs tracking-[0.1em]">
+                      <TableCell className="text-[10px] sm:text-xs md:text-sm py-2 sm:py-3">${product.price}</TableCell>
+                      <TableCell className="uppercase text-[10px] sm:text-xs tracking-[0.1em] py-2 sm:py-3">
                         {product.gender}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right py-2 sm:py-3">
                         <div className="flex gap-1 sm:gap-2 justify-end">
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-7 w-7 sm:h-8 sm:w-auto"
+                            className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-auto text-[10px] sm:text-xs"
                             onClick={() => {
                               setEditingProduct(product);
                               setIsEditDialogOpen(true);
                             }}
                           >
-                            <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <Edit className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4" />
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-7 w-7 sm:h-8 sm:w-auto"
+                            className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-auto text-[10px] sm:text-xs"
                             onClick={() => handleDeleteProduct(product.id)}
                           >
-                            <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <Trash2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4" />
                           </Button>
                         </div>
                       </TableCell>
