@@ -1,29 +1,31 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
-import { HomePage } from './components/pages/HomePage';
-import { AboutPage } from './components/pages/AboutPage';
-import { PortfolioPage } from './components/pages/PortfolioPage';
-import { PortfolioDetail } from './components/pages/PortfolioDetail';
-import { ArtistPage } from './components/pages/ArtistPage';
-import { ArtistDetail } from './components/pages/ArtistDetail';
-import { ShopPage } from './components/pages/ShopPage';
-import { ProductDetail } from './components/pages/ProductDetail';
-import { ContactPage } from './components/pages/ContactPage';
-import { ProductListingPage } from './components/ProductListingPage';
-import { ProductDetailPage } from './components/ProductDetailPage';
-import { CartPage } from './components/CartPage';
-import { CheckoutPage } from './components/CheckoutPage';
-import { CheckoutSuccessPage } from './components/CheckoutSuccessPage';
-import { CheckoutFailPage } from './components/CheckoutFailPage';
-import { LoginPage } from './components/LoginPage';
-import { SignUpPage } from './components/SignUpPage';
-import { ResetPasswordPage } from './components/ResetPasswordPage';
-import { MyPage } from './components/MyPage';
-import { AdminLogin } from './components/AdminLogin';
-import { AdminDashboard } from './components/AdminDashboard';
 import { useUser } from './context/UserContext';
+
+// Lazy load components for code splitting
+const HomePage = lazy(() => import('./components/pages/HomePage').then(m => ({ default: m.HomePage })));
+const AboutPage = lazy(() => import('./components/pages/AboutPage').then(m => ({ default: m.AboutPage })));
+const PortfolioPage = lazy(() => import('./components/pages/PortfolioPage').then(m => ({ default: m.PortfolioPage })));
+const PortfolioDetail = lazy(() => import('./components/pages/PortfolioDetail').then(m => ({ default: m.PortfolioDetail })));
+const ArtistPage = lazy(() => import('./components/pages/ArtistPage').then(m => ({ default: m.ArtistPage })));
+const ArtistDetail = lazy(() => import('./components/pages/ArtistDetail').then(m => ({ default: m.ArtistDetail })));
+const ShopPage = lazy(() => import('./components/pages/ShopPage').then(m => ({ default: m.ShopPage })));
+const ProductDetail = lazy(() => import('./components/pages/ProductDetail').then(m => ({ default: m.ProductDetail })));
+const ContactPage = lazy(() => import('./components/pages/ContactPage').then(m => ({ default: m.ContactPage })));
+const ProductListingPage = lazy(() => import('./components/ProductListingPage').then(m => ({ default: m.ProductListingPage })));
+const ProductDetailPage = lazy(() => import('./components/ProductDetailPage').then(m => ({ default: m.ProductDetailPage })));
+const CartPage = lazy(() => import('./components/CartPage').then(m => ({ default: m.CartPage })));
+const CheckoutPage = lazy(() => import('./components/CheckoutPage').then(m => ({ default: m.CheckoutPage })));
+const CheckoutSuccessPage = lazy(() => import('./components/CheckoutSuccessPage').then(m => ({ default: m.CheckoutSuccessPage })));
+const CheckoutFailPage = lazy(() => import('./components/CheckoutFailPage').then(m => ({ default: m.CheckoutFailPage })));
+const LoginPage = lazy(() => import('./components/LoginPage').then(m => ({ default: m.LoginPage })));
+const SignUpPage = lazy(() => import('./components/SignUpPage').then(m => ({ default: m.SignUpPage })));
+const ResetPasswordPage = lazy(() => import('./components/ResetPasswordPage').then(m => ({ default: m.ResetPasswordPage })));
+const MyPage = lazy(() => import('./components/MyPage').then(m => ({ default: m.MyPage })));
+const AdminLogin = lazy(() => import('./components/AdminLogin').then(m => ({ default: m.AdminLogin })));
+const AdminDashboard = lazy(() => import('./components/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
 
 // 보호된 라우트 (로그인 필요)
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -153,47 +155,56 @@ const AdminDashboardWrapper = () => {
   return <AdminDashboard onNavigate={handleNavigate} />;
 };
 
+// Loading fallback component
+const LoadingFallback: React.FC = () => (
+  <div className="min-h-screen bg-black flex items-center justify-center">
+    <div className="text-white">Loading...</div>
+  </div>
+);
+
 export const AppRouter: React.FC = () => {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Lupl Original Routes */}
-        <Route path="/" element={<Layout><HomePage /></Layout>} />
-        <Route path="/preview_page.html" element={<Layout><HomePage /></Layout>} />
-        <Route path="/about" element={<Layout><AboutPage /></Layout>} />
-        <Route path="/portfolio" element={<Layout><PortfolioPage /></Layout>} />
-        <Route path="/portfolio/:id" element={<Layout><PortfolioDetail /></Layout>} />
-        <Route path="/artist" element={<Layout><ArtistPage /></Layout>} />
-        <Route path="/artist/:id" element={<Layout><ArtistDetail /></Layout>} />
-        <Route path="/contact" element={<Layout><ContactPage /></Layout>} />
-        
-        {/* Legacy Shop Routes (still using old pages) */}
-        <Route path="/shop" element={<Layout><ShopPage /></Layout>} />
-        <Route path="/shop/:id" element={<Layout><ProductDetail /></Layout>} />
-        
-        {/* New E-commerce Routes */}
-        <Route path="/products" element={<Layout><ProductListingPageWrapper /></Layout>} />
-        <Route path="/product/:productId" element={<Layout><ProductDetailPageWrapper /></Layout>} />
-        
-        {/* Authentication Routes */}
-        <Route path="/login" element={<LoginPageWrapper />} />
-        <Route path="/signup" element={<SignUpPageWrapper />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
-        
-        {/* Protected Routes */}
-        <Route path="/cart" element={<ProtectedRoute><Layout><CartPageWrapper /></Layout></ProtectedRoute>} />
-        <Route path="/checkout" element={<ProtectedRoute><Layout><CheckoutPageWrapper /></Layout></ProtectedRoute>} />
-        <Route path="/checkout/success" element={<ProtectedRoute><Layout><CheckoutSuccessPage /></Layout></ProtectedRoute>} />
-        <Route path="/checkout/fail" element={<ProtectedRoute><Layout><CheckoutFailPage /></Layout></ProtectedRoute>} />
-        <Route path="/mypage" element={<ProtectedRoute><Layout><MyPageWrapper /></Layout></ProtectedRoute>} />
-        
-        {/* Admin Routes */}
-        <Route path="/admin/login" element={<AdminLoginWrapper />} />
-        <Route path="/admin" element={<AdminProtectedRoute><AdminDashboardWrapper /></AdminProtectedRoute>} />
-        
-        {/* 404 */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <Suspense fallback={<LoadingFallback />}>
+        <Routes>
+          {/* Lupl Original Routes */}
+          <Route path="/" element={<Layout><HomePage /></Layout>} />
+          <Route path="/preview_page.html" element={<Layout><HomePage /></Layout>} />
+          <Route path="/about" element={<Layout><AboutPage /></Layout>} />
+          <Route path="/portfolio" element={<Layout><PortfolioPage /></Layout>} />
+          <Route path="/portfolio/:id" element={<Layout><PortfolioDetail /></Layout>} />
+          <Route path="/artist" element={<Layout><ArtistPage /></Layout>} />
+          <Route path="/artist/:id" element={<Layout><ArtistDetail /></Layout>} />
+          <Route path="/contact" element={<Layout><ContactPage /></Layout>} />
+          
+          {/* Legacy Shop Routes (still using old pages) */}
+          <Route path="/shop" element={<Layout><ShopPage /></Layout>} />
+          <Route path="/shop/:id" element={<Layout><ProductDetail /></Layout>} />
+          
+          {/* New E-commerce Routes */}
+          <Route path="/products" element={<Layout><ProductListingPageWrapper /></Layout>} />
+          <Route path="/product/:productId" element={<Layout><ProductDetailPageWrapper /></Layout>} />
+          
+          {/* Authentication Routes */}
+          <Route path="/login" element={<LoginPageWrapper />} />
+          <Route path="/signup" element={<SignUpPageWrapper />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          
+          {/* Protected Routes */}
+          <Route path="/cart" element={<ProtectedRoute><Layout><CartPageWrapper /></Layout></ProtectedRoute>} />
+          <Route path="/checkout" element={<ProtectedRoute><Layout><CheckoutPageWrapper /></Layout></ProtectedRoute>} />
+          <Route path="/checkout/success" element={<ProtectedRoute><Layout><CheckoutSuccessPage /></Layout></ProtectedRoute>} />
+          <Route path="/checkout/fail" element={<ProtectedRoute><Layout><CheckoutFailPage /></Layout></ProtectedRoute>} />
+          <Route path="/mypage" element={<ProtectedRoute><Layout><MyPageWrapper /></Layout></ProtectedRoute>} />
+          
+          {/* Admin Routes */}
+          <Route path="/admin/login" element={<AdminLoginWrapper />} />
+          <Route path="/admin" element={<AdminProtectedRoute><AdminDashboardWrapper /></AdminProtectedRoute>} />
+          
+          {/* 404 */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 };

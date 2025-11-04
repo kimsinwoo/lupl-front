@@ -143,22 +143,32 @@ export const CheckoutPage = ({ onNavigate }: CheckoutPageProps) => {
   // totalAmount: 달러를 원화로 변환 (1 USD = 1300 KRW)
   const totalAmount = Math.floor((total * 1300));
   
-  // 토스페이먼츠 스크립트 로드
+  // 토스페이먼츠 스크립트 로드 - 필요할 때만 로드
   useEffect(() => {
-    if (!window.TossPayments) {
+    // Step 3이고 카드 결제 방법일 때만 스크립트 로드
+    if (step === 3 && paymentMethod === 'card' && !window.TossPayments) {
       const script = document.createElement('script');
       script.src = 'https://js.tosspayments.com/v1/payment-widget';
       script.async = true;
+      script.defer = true;
+      script.crossOrigin = 'anonymous';
       script.onload = () => {
         console.log('✅ TossPayments script loaded');
+      };
+      script.onerror = () => {
+        console.error('❌ Failed to load TossPayments script');
       };
       document.body.appendChild(script);
       
       return () => {
-        document.body.removeChild(script);
+        // Cleanup: only remove script if it was added by this effect
+        const existingScript = document.querySelector('script[src="https://js.tosspayments.com/v1/payment-widget"]');
+        if (existingScript && existingScript.parentNode) {
+          existingScript.parentNode.removeChild(existingScript);
+        }
       };
     }
-  }, []);
+  }, [step, paymentMethod]);
 
   // Step 3으로 이동하면 결제 위젯 초기화
   useEffect(() => {

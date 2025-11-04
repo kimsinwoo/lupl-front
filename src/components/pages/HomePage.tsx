@@ -33,6 +33,9 @@ export function HomePage() {
             src="https://images.unsplash.com/photo-1681235014294-588fea095706?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMGFydCUyMHBhaW50aW5nfGVufDF8fHx8MTc2MTc4MzQ5NHww&ixlib=rb-4.1.0&q=80&w=1080"
             alt="Artwork collage"
             className="w-full h-full object-cover opacity-60"
+            width={1080}
+            height={720}
+            loading="eager"
           />
         </div>
 

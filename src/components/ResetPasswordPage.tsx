@@ -211,7 +211,7 @@ export const ResetPasswordPage = () => {
                     setCode('');
                   }}
                   variant="outline"
-                  className="flex-1 border-white/20 text-white hover:bg-white/10"
+                  className="flex-1 border-white/20 text-black hover:bg-white/10"
                 >
                   {language === 'ko' ? '이메일 변경' : 'Change Email'}
                 </Button>
