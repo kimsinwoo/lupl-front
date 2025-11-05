@@ -31,7 +31,7 @@ export function Header() {
   const { user } = useUser();
   const { cart } = useCart();
   const [isOpen, setIsOpen] = useState(false);
-  
+
   const handleCartClick = () => {
     if (!user) {
       toast.error(t('cart.loginRequired') || '로그인을 해주세요');
@@ -72,8 +72,35 @@ export function Header() {
     >
       <div className="container mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
         <Link to="/" className="group z-50">
-          <span className="text-white transition-colors duration-300 group-hover:text-[#5842FF]">
-            Lupl
+          {/* 로고가 잘 보이도록 배경을 주고, 그림자 및 테두리 강조 */}
+          <span className="relative flex items-center justify-center transition-colors duration-300 group-hover:text-[#5842FF]">
+            {/* 반투명 어두운 원형 배경 + 하얀색 원형 border + 섀도우 */}
+            <span
+              className="
+                absolute
+                inset-0
+                rounded-full
+                border-2
+                border-white
+                pointer-events-none
+                w-12 h-12
+                mx-auto
+                my-auto
+                bg-black/80
+                shadow-lg
+              "
+
+              aria-hidden="true"
+            ></span>
+            <img
+              src="/lupl-logo.png"
+              alt="Lupl Logo"
+              className="w-10 h-10 relative z-10 drop-shadow-[0_1px_8px_rgba(0,0,0,0.32)]"
+              style={{
+                background: 'transparent',
+                filter: 'drop-shadow(1px 1px 4px white)'
+              }}
+            />
           </span>
         </Link>
         

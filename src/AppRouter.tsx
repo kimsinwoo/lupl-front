@@ -190,6 +190,10 @@ export const AppRouter: React.FC = () => {
           <Route path="/signup" element={<SignUpPageWrapper />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           
+          {/* OAuth Callback Routes */}
+          <Route path="/oauth/kakao/callback" element={<LoginPageWrapper />} />
+          <Route path="/oauth/naver/callback" element={<LoginPageWrapper />} />
+          
           {/* Protected Routes */}
           <Route path="/cart" element={<ProtectedRoute><Layout><CartPageWrapper /></Layout></ProtectedRoute>} />
           <Route path="/checkout" element={<ProtectedRoute><Layout><CheckoutPageWrapper /></Layout></ProtectedRoute>} />

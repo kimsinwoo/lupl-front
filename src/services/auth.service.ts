@@ -197,8 +197,13 @@ export const authService = {
     }
   },
   
-  kakaoLogin: async (accessToken: string): Promise<AuthResponse> => {
-    const response = await api.post<any>('/auth/kakao', { accessToken });
+  kakaoLogin: async (codeOrToken: string, state?: string, redirectUri?: string): Promise<AuthResponse> => {
+    // code와 state가 있으면 OAuth callback, 아니면 직접 access token
+    const body = state 
+      ? { code: codeOrToken, state, redirectUri }
+      : { accessToken: codeOrToken };
+    
+    const response = await api.post<any>('/auth/kakao', body);
     
     // Axios 응답 구조 처리
     let actualResponse = response;
@@ -214,6 +219,57 @@ export const authService = {
       if (actualResponse.data?.token) {
         localStorage.setItem('token', actualResponse.data.token);
         console.log('✅ Token saved in localStorage (Kakao login)');
+      }
+    }
+    
+    return actualResponse as AuthResponse;
+  },
+  
+  googleLogin: async (idToken: string): Promise<AuthResponse> => {
+    const response = await api.post<any>('/auth/google', { idToken });
+    
+    // Axios 응답 구조 처리
+    let actualResponse = response;
+    if ((response as any).data && (response as any).data.data) {
+      actualResponse = (response as any).data;
+    }
+    
+    // 세션 쿠키가 자동으로 설정되므로 user 정보와 토큰 저장
+    if (actualResponse.success && actualResponse.data?.user) {
+      localStorage.setItem('user', JSON.stringify(actualResponse.data.user));
+      
+      // 토큰 저장
+      if (actualResponse.data?.token) {
+        localStorage.setItem('token', actualResponse.data.token);
+        console.log('✅ Token saved in localStorage (Google login)');
+      }
+    }
+    
+    return actualResponse as AuthResponse;
+  },
+  
+  naverLogin: async (codeOrToken: string, state?: string, redirectUri?: string): Promise<AuthResponse> => {
+    // code와 state가 있으면 OAuth callback, 아니면 직접 access token
+    const body = state 
+      ? { code: codeOrToken, state, redirectUri }
+      : { accessToken: codeOrToken };
+    
+    const response = await api.post<any>('/auth/naver', body);
+    
+    // Axios 응답 구조 처리
+    let actualResponse = response;
+    if ((response as any).data && (response as any).data.data) {
+      actualResponse = (response as any).data;
+    }
+    
+    // 세션 쿠키가 자동으로 설정되므로 user 정보와 토큰 저장
+    if (actualResponse.success && actualResponse.data?.user) {
+      localStorage.setItem('user', JSON.stringify(actualResponse.data.user));
+      
+      // 토큰 저장
+      if (actualResponse.data?.token) {
+        localStorage.setItem('token', actualResponse.data.token);
+        console.log('✅ Token saved in localStorage (Naver login)');
       }
     }
     
