@@ -432,18 +432,21 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
                 <div key={product.id} className="bg-white shadow-sm rounded-lg p-4 space-y-3">
                   <div className="flex items-start gap-3">
                     <img
-                      src={product.image}
+                      src={product.image || (Array.isArray(product.images) ? product.images[0] : (typeof product.images === 'string' ? (JSON.parse(product.images || '[]')?.[0] || '') : '')) || '/placeholder.png'}
                       alt={product.name}
                       className="w-20 h-20 object-cover rounded flex-shrink-0"
                       style={{ width: '200px', height: '200px' }}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/placeholder.png';
+                      }}
                     />
                     <div className="flex-1 min-w-0">
                       <h3 className="font-medium tracking-[0.05em] truncate text-sm">{product.name}</h3>
                       <div className="mt-1 space-y-1">
                         <p className="text-xs text-muted-foreground uppercase tracking-[0.1em]">
-                          {product.category}
+                          {product.category || 'N/A'}
                         </p>
-                        <p className="text-lg font-semibold">${product.price}</p>
+                        <p className="text-lg font-semibold">${(product.price / 1300).toFixed(2)}</p>
                         <p className="text-xs text-muted-foreground uppercase tracking-[0.1em]">
                           {product.gender}
                         </p>
@@ -495,19 +498,22 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
                     <TableRow key={product.id}>
                       <TableCell>
                         <img
-                          src={product.image}
+                          src={product.image || (Array.isArray(product.images) ? product.images[0] : (typeof product.images === 'string' ? (JSON.parse(product.images || '[]')?.[0] || '') : '')) || '/placeholder.png'}
                           alt={product.name}
                           className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded"
                           style={{ width: '200px', height: '200px' }}
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/placeholder.png';
+                          }}
                         />
                       </TableCell>
                       <TableCell className="tracking-[0.05em] text-xs sm:text-sm">{product.name}</TableCell>
                       <TableCell className="uppercase text-xs tracking-[0.1em]">
-                        {product.category}
+                        {product.category || 'N/A'}
                       </TableCell>
-                      <TableCell className="text-xs sm:text-sm">${product.price}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">${(product.price / 1300).toFixed(2)}</TableCell>
                       <TableCell className="uppercase text-xs tracking-[0.1em]">
-                        {product.gender}
+                        {product.gender || 'Unisex'}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex gap-1 sm:gap-2 justify-end">
@@ -737,13 +743,22 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
                   <h3 className="text-lg font-semibold tracking-[0.1em]">SHIPPING ADDRESS</h3>
                   <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
                     <p className="font-medium">{selectedOrder.shippingName || selectedOrder.customerName}</p>
-                    <p>{selectedOrder.shippingAddress1 || 'N/A'}</p>
-                    {selectedOrder.shippingAddress2 && (
-                      <p>{selectedOrder.shippingAddress2}</p>
-                    )}
-                    <p>
-                      {selectedOrder.shippingCity || 'N/A'}, {selectedOrder.shippingZip || 'N/A'} {selectedOrder.shippingCountry || 'N/A'}
-                    </p>
+                    <p className="text-muted-foreground">{selectedOrder.shippingPhone || 'N/A'}</p>
+                    <div className="space-y-1">
+                      {selectedOrder.shippingAddress1 && (
+                        <p>{selectedOrder.shippingAddress1}</p>
+                      )}
+                      {selectedOrder.shippingAddress2 && (
+                        <p>{selectedOrder.shippingAddress2}</p>
+                      )}
+                      <p>
+                        {[
+                          selectedOrder.shippingCity,
+                          selectedOrder.shippingZip,
+                          selectedOrder.shippingCountry || 'South Korea'
+                        ].filter(Boolean).join(', ') || 'N/A'}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
@@ -755,12 +770,15 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
                       selectedOrder.items.map((item: any, index: number) => (
                         <div key={index} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
                           <div className="flex-1">
-                            <p className="font-medium">{item.productName}</p>
+                            <p className="font-medium">{item.productName || 'Unknown Product'}</p>
                             <p className="text-sm text-muted-foreground">
-                              {item.size} / {item.color} - Qty: {item.quantity}
+                              {[item.size, item.color].filter(Boolean).join(' / ') || 'Standard'} - Qty: {item.quantity}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Unit Price: ${((item.price || 0) / 1300).toFixed(2)}
                             </p>
                           </div>
-                          <p className="font-semibold">${((item.price || 0) / 1300).toFixed(2)}</p>
+                          <p className="font-semibold">${(((item.price || 0) * (item.quantity || 1)) / 1300).toFixed(2)}</p>
                         </div>
                       ))
                     ) : (

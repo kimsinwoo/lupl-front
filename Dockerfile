@@ -9,7 +9,7 @@ COPY . .
 RUN npm run build
 
 FROM nginx:1.25-alpine
-COPY --from=build /app/dist /usr/share/nginx/html
+COPY --from=build /app/build /usr/share/nginx/html
 
 RUN echo 'server { \
     listen 80; \
