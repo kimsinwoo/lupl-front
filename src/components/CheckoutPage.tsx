@@ -157,6 +157,7 @@ export const CheckoutPage = ({ onNavigate }: CheckoutPageProps) => {
       };
       script.onerror = () => {
         console.error('❌ Failed to load TossPayments script');
+        toast.error('결제 시스템을 불러올 수 없습니다. 페이지를 새로고침해주세요.');
       };
       document.body.appendChild(script);
       
@@ -172,15 +173,45 @@ export const CheckoutPage = ({ onNavigate }: CheckoutPageProps) => {
 
   // Step 3으로 이동하면 결제 위젯 초기화
   useEffect(() => {
+    let checkInterval: NodeJS.Timeout | null = null;
+    let isMounted = true;
+    
     const initPaymentWidget = async () => {
       if (step === 3 && paymentMethod === 'card') {
+        // 이전 위젯 정리
+        if (paymentWidgets) {
+          try {
+            (paymentWidgets as any).unmount?.('#payment-method');
+            (paymentWidgets as any).unmount?.('#agreement');
+          } catch (e) {
+            console.warn('Failed to unmount previous widgets:', e);
+          }
+          setPaymentWidgets(null);
+        }
+        
+        // DOM 요소 확인
+        const paymentMethodEl = document.getElementById('payment-method');
+        const agreementEl = document.getElementById('agreement');
+        
+        if (!paymentMethodEl || !agreementEl) {
+          console.warn('Payment widget containers not found');
+          return;
+        }
+        
         // TossPayments 스크립트가 로드될 때까지 대기
         let retries = 0;
-        const checkTossPayments = setInterval(async () => {
+        checkInterval = setInterval(async () => {
           if (window.TossPayments) {
-            clearInterval(checkTossPayments);
+            if (checkInterval) {
+              clearInterval(checkInterval);
+              checkInterval = null;
+            }
+            
+            if (!isMounted) return;
+            
             try {
-              const clientKey = 'test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm';
+              // 환경 변수에서 clientKey 가져오기 (없으면 테스트 키 사용)
+              const clientKey = (import.meta as any).env?.VITE_TOSS_CLIENT_KEY || 'test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm';
               const customerKey = window.TossPayments.ANONYMOUS;
               const tossPayments = window.TossPayments(clientKey);
               const widgets = tossPayments.widgets({ customerKey });
@@ -197,31 +228,49 @@ export const CheckoutPage = ({ onNavigate }: CheckoutPageProps) => {
                 widgets.renderAgreement({ selector: '#agreement', variantKey: 'AGREEMENT' })
               ]);
               
-              setPaymentWidgets(widgets);
-              console.log('✅ Payment widgets initialized');
-            } catch (error) {
+              if (isMounted) {
+                setPaymentWidgets(widgets);
+                console.log('✅ Payment widgets initialized');
+              }
+            } catch (error: any) {
               console.error('❌ Failed to initialize payment widgets:', error);
+              if (isMounted) {
+                toast.error(error.message || '결제 위젯 초기화에 실패했습니다.');
+              }
             }
           } else {
             retries++;
             if (retries > 50) { // 5초 후 타임아웃
-              clearInterval(checkTossPayments);
-              console.error('❌ TossPayments script failed to load');
+              if (checkInterval) {
+                clearInterval(checkInterval);
+                checkInterval = null;
+              }
+              if (isMounted) {
+                console.error('❌ TossPayments script failed to load');
+                toast.error('결제 시스템을 불러올 수 없습니다. 페이지를 새로고침해주세요.');
+              }
             }
           }
         }, 100);
-        
-        return () => {
-          clearInterval(checkTossPayments);
-          if (paymentWidgets) {
-            paymentWidgets.unmount?.('#payment-method');
-            paymentWidgets.unmount?.('#agreement');
-          }
-        };
       }
     };
     
     initPaymentWidget();
+    
+    return () => {
+      isMounted = false;
+      if (checkInterval) {
+        clearInterval(checkInterval);
+      }
+      if (paymentWidgets) {
+        try {
+          (paymentWidgets as any).unmount?.('#payment-method');
+          (paymentWidgets as any).unmount?.('#agreement');
+        } catch (e) {
+          console.warn('Failed to unmount widgets on cleanup:', e);
+        }
+      }
+    };
   }, [step, paymentMethod, totalAmount]);
 
   const handleInputChange = (e: any) => {
@@ -314,15 +363,20 @@ export const CheckoutPage = ({ onNavigate }: CheckoutPageProps) => {
         });
         
         // 결제창 열기
-        await paymentWidgets.requestPayment({
-          orderId: `LUPL-${actualOrderId}`,
-          orderName: orderName,
-          successUrl: `${window.location.origin}/checkout/success?amount=${totalAmount}&orderId=${actualOrderId}`,
-          failUrl: `${window.location.origin}/checkout/fail`,
-          customerEmail: formData.email,
-          customerName: `${formData.firstName} ${formData.lastName}`,
-          customerMobilePhone: formData.phone,
-        });
+        try {
+          await (paymentWidgets as any).requestPayment({
+            orderId: `LUPL-${actualOrderId}`,
+            orderName: orderName,
+            successUrl: `${window.location.origin}/checkout/success?amount=${totalAmount}&orderId=${actualOrderId}`,
+            failUrl: `${window.location.origin}/checkout/fail`,
+            customerEmail: formData.email,
+            customerName: `${formData.firstName} ${formData.lastName}`,
+            customerMobilePhone: formData.phone,
+          });
+        } catch (error: any) {
+          console.error('❌ Payment request error:', error);
+          throw new Error(error.message || '결제 요청에 실패했습니다.');
+        }
         
         // 결제창이 열리면 아래 코드는 실행되지 않음 (successUrl로 리다이렉트)
       } else {
