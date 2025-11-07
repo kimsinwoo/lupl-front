@@ -90,5 +90,6 @@
     server: {
       port: 3000,
       open: true,
+      allowedHosts: ['lupl.co.kr', 'www.lupl.co.kr'],
     },
   });
