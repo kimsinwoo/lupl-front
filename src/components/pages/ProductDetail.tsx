@@ -6,7 +6,6 @@ import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { productService } from '../../services/product.service';
-import { artistService } from '../../services/artist.service';
 import { reviewService, Review } from '../../services/review.service';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -108,7 +107,6 @@ export function ProductDetail() {
   const navigate = useNavigate();
 
   const [product, setProduct] = useState<Product | null>(null);
-  const [artist, setArtist] = useState<Artist | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedVariant, setSelectedVariant] = useState<{ id: string; size: string; color?: string } | null>(null);
@@ -190,30 +188,7 @@ export function ProductDetail() {
         });
       }
 
-      // 아티스트
-      if (p.artistId) {
-        try {
-          const ar = await artistService.getById(p.artistId) as unknown;
-          let a: Artist | null = null;
-
-          const isArtist = (x: unknown): x is Artist =>
-            typeof x === 'object' && x !== null && 'id' in x && 'name' in x;
-
-          if (isArtist(ar)) a = ar;
-          else if (typeof ar === 'object' && ar !== null && 'data' in ar) {
-            const d1 = (ar as { data?: unknown }).data;
-            if (isArtist(d1)) a = d1;
-            else if (typeof d1 === 'object' && d1 !== null && 'data' in d1) {
-              const d2 = (d1 as { data?: unknown }).data;
-              if (isArtist(d2)) a = d2;
-            }
-          }
-
-          if (a) setArtist(a);
-        } catch {
-          // 아티스트 실패는 치명적 아님
-        }
-      }
+      // 아티스트 정보는 더 이상 표시하지 않음
     } catch {
       toast.error(language === 'ko' ? '상품을 불러올 수 없습니다' : 'Failed to load product');
     } finally {
@@ -311,44 +286,23 @@ export function ProductDetail() {
         </motion.div>
 
         {/* Product Details */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 sm:gap-12">
-          {/* Left: Artist Info */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            className="bg-white/5 border border-white/10 rounded-lg p-6 sm:p-6 h-fit order-2 lg:order-1"
-          >
-            {artist && (
-              <>
-                <div className="aspect-square max-w-48 mx-auto rounded-lg overflow-hidden mb-4">
-                  <ImageWithFallback
-                    src={artist.profileImage ?? artist.image}
-                    alt={language === 'ko' ? artist.name : artist.nameEn ?? artist.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <h3 className="text-white mb-2">{language === 'ko' ? '아티스트' : 'Artist'}</h3>
-                <p className="text-white/70 mb-4">
-                  {language === 'ko' ? artist.name : artist.nameEn ?? artist.name}
-                </p>
-                <Link
-                  to={`/artist/${artist.id}`}
-                  className="text-[#5842FF] hover:text-[#5842FF]/80 transition-colors text-sm"
-                >
-                  {language === 'ko' ? '아티스트 프로필 보기 →' : 'View Artist Profile →'}
-                </Link>
-              </>
-            )}
-          </motion.div>
-
-          {/* Center: Product Images */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12">
+          {/* Left: Product Images */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="order-1 lg:order-2"
           >
+            {/* Main Image */}
+            <div className="max-w-full mx-auto aspect-square rounded-lg overflow-hidden bg-white/5 border border-white/10 mb-4">
+              <ImageWithFallback
+                src={product.images?.[selectedImage] ?? product.image}
+                alt={product.title ?? product.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            
+            {/* Thumbnail Images */}
             {product.images && product.images.length > 1 && (
               <div className="grid grid-cols-4 gap-2 sm:gap-4">
                 {product.images.map((img, index) => (
@@ -377,7 +331,6 @@ export function ProductDetail() {
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
-            className="order-3"
           >
             <div className="flex items-start justify-between mb-2">
               <h1 className="text-white flex-1">{product.title ?? product.name}</h1>
