@@ -120,8 +120,8 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
     onNavigate('home');
   };
 
-  // Calculate statistics (convert KRW to USD for display)
-  const totalRevenue = orders.reduce((sum, order) => sum + (order.total / 1300), 0);
+  // Calculate statistics (in KRW)
+  const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
   const pendingOrders = orders.filter(o => o.status === 'pending').length;
   const totalProducts = products.length;
   const recentOrders = orders.slice(0, 5);
@@ -287,7 +287,7 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
               <DollarSign className="w-8 h-8 text-green-600" />
             </div>
             <p className="text-sm text-muted-foreground tracking-[0.1em] mb-2">TOTAL REVENUE</p>
-            <p className="text-2xl tracking-[0.1em]">${totalRevenue.toLocaleString()}</p>
+            <p className="text-2xl tracking-[0.1em]">₩{totalRevenue.toLocaleString('ko-KR')}</p>
           </div>
 
           <div className="bg-white p-8 shadow-sm">
@@ -446,7 +446,7 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
                         <p className="text-xs text-muted-foreground uppercase tracking-[0.1em]">
                           {product.category || 'N/A'}
                         </p>
-                        <p className="text-lg font-semibold">${(product.price / 1300).toFixed(2)}</p>
+                        <p className="text-lg font-semibold">₩{Number(product.price).toLocaleString('ko-KR')}</p>
                         <p className="text-xs text-muted-foreground uppercase tracking-[0.1em]">
                           {product.gender}
                         </p>
@@ -511,7 +511,7 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
                       <TableCell className="uppercase text-xs tracking-[0.1em]">
                         {product.category || 'N/A'}
                       </TableCell>
-                      <TableCell className="text-xs sm:text-sm">${(product.price / 1300).toFixed(2)}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">₩{Number(product.price).toLocaleString('ko-KR')}</TableCell>
                       <TableCell className="uppercase text-xs tracking-[0.1em]">
                         {product.gender || 'Unisex'}
                       </TableCell>
@@ -580,7 +580,7 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground mb-1">Total</p>
-                        <p className="font-semibold">${((order.total ?? 0) / 1300).toFixed(2)}</p>
+                        <p className="font-semibold">₩{Number(order.total ?? 0).toLocaleString('ko-KR')}</p>
                       </div>
                     </div>
                     
@@ -655,7 +655,7 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
                           <p className="text-xs text-muted-foreground">{order.email}</p>
                         </div>
                       </TableCell>
-                      <TableCell>${((order.total ?? 0) / 1300).toFixed(2)}</TableCell>
+                      <TableCell>₩{Number(order.total ?? 0).toLocaleString('ko-KR')}</TableCell>
                       <TableCell>
                         <Badge className={getStatusColor(order.status)}>
                           {order.status.toUpperCase()}
@@ -775,10 +775,10 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
                               {[item.size, item.color].filter(Boolean).join(' / ') || 'Standard'} - Qty: {item.quantity}
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
-                              Unit Price: ${((item.price || 0) / 1300).toFixed(2)}
+                              Unit Price: ₩{Number(item.price || 0).toLocaleString('ko-KR')}
                             </p>
                           </div>
-                          <p className="font-semibold">${(((item.price || 0) * (item.quantity || 1)) / 1300).toFixed(2)}</p>
+                          <p className="font-semibold">₩{Number((item.price || 0) * (item.quantity || 1)).toLocaleString('ko-KR')}</p>
                         </div>
                       ))
                     ) : (
@@ -791,7 +791,7 @@ export const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
                 <div className="space-y-3 border-t pt-4">
                   <div className="flex justify-between text-lg font-semibold">
                     <span>Total</span>
-                    <span>${((selectedOrder.total ?? 0) / 1300).toFixed(2)}</span>
+                    <span>₩{Number(selectedOrder.total ?? 0).toLocaleString('ko-KR')}</span>
                   </div>
                   <div className="flex gap-2">
                     <Badge className={getStatusColor(selectedOrder.status)}>

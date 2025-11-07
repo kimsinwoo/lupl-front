@@ -137,11 +137,11 @@ export const CheckoutPage = ({ onNavigate }: CheckoutPageProps) => {
     ? (directPurchaseProduct.price * (directPurchaseProduct.quantity || 1))
     : cartTotal;
     
-  const shippingCostDisplay = displayTotal > 0 ? 15 : 0; // $15 배송비
+  const shippingCostDisplay = displayTotal > 0 ? 15000 : 0; // ₩15,000 배송비
   const total = displayTotal + shippingCostDisplay;
   
-  // totalAmount: 달러를 원화로 변환 (1 USD = 1300 KRW)
-  const totalAmount = Math.floor((total * 1300));
+  // totalAmount: 원화로 표시
+  const totalAmount = Math.floor(total);
   
   // 토스페이먼츠 스크립트 로드 - 필요할 때만 로드
   useEffect(() => {
@@ -636,7 +636,7 @@ export const CheckoutPage = ({ onNavigate }: CheckoutPageProps) => {
                         </div>
                         {/* 세부 가격 */}
                         <span className="text-white text-sm sm:text-base font-semibold tabular-nums" style={{ whiteSpace: 'nowrap' }}>
-                          ${lineTotal.toFixed(2)}
+                          ₩{lineTotal.toLocaleString('ko-KR')}
                         </span>
                       </div>
                     );
@@ -699,15 +699,15 @@ export const CheckoutPage = ({ onNavigate }: CheckoutPageProps) => {
               <div className="space-y-3 sm:space-y-4">
                 <div className="flex justify-between text-sm sm:text-base">
                   <span className="text-white/70">{t('cart.subtotal')}</span>
-                  <span className="text-white">${displayTotal.toFixed(2)}</span>
+                  <span className="text-white">₩{displayTotal.toLocaleString('ko-KR')}</span>
                 </div>
                 <div className="flex justify-between text-sm sm:text-base">
                   <span className="text-white/70">{t('cart.shipping')}</span>
-                  <span className="text-white">${shippingCostDisplay.toFixed(2)}</span>
+                  <span className="text-white">₩{shippingCostDisplay.toLocaleString('ko-KR')}</span>
                 </div>
                 <div className="pt-3 sm:pt-4 border-t border-white/10 flex justify-between">
                   <span className="text-sm sm:text-base tracking-[0.15em] text-white">{t('cart.total')}</span>
-                  <span className="text-lg sm:text-xl text-white">${total.toFixed(2)}</span>
+                  <span className="text-lg sm:text-xl text-white">₩{total.toLocaleString('ko-KR')}</span>
                 </div>
               </div>
             </div>

@@ -729,7 +729,7 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
                           </div>
                            {/* 세부 가격 */}
                            <span className="text-white text-sm sm:text-base font-semibold tabular-nums" style={{ whiteSpace: 'nowrap' }}>
-                             ${Number(item.price ?? 0).toFixed(2)}
+                             ₩{Number(item.price ?? 0).toLocaleString('ko-KR')}
                            </span>
                         </div>
                       ))}
@@ -740,7 +740,7 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
                         {tf('mypage.total', 'TOTAL')}
                       </p>
                       <p className="text-lg tracking-wide font-bold text-white">
-                        ${((Number(order.total ?? 0)) / 1300).toFixed(2)}
+                        ₩{Number(order.total ?? 0).toLocaleString('ko-KR')}
                       </p>
                     </div>
                   </div>

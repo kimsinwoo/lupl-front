@@ -19,7 +19,7 @@ export const CartPage = ({ onNavigate }: CartPageProps) => {
     return v !== key && v.trim().length > 0 ? v : fallback;
   };
 
-  const shippingCost = cartTotal > 0 ? 15 : 0;
+  const shippingCost = cartTotal > 0 ? 15000 : 0; // ₩15,000 배송비
   const total = cartTotal + shippingCost;
 
   if (cart.length === 0) {
@@ -149,7 +149,7 @@ export const CartPage = ({ onNavigate }: CartPageProps) => {
                           </button>
                         </div>
                         <span className="text-white text-sm sm:text-base font-semibold tabular-nums" style={{ whiteSpace: 'nowrap' }}>
-                          ${lineTotal.toFixed(2)}
+                          ₩{lineTotal.toLocaleString('ko-KR')}
                         </span>
                         <button
                           aria-label={tf('cart.remove', 'Remove from cart')}
@@ -183,15 +183,15 @@ export const CartPage = ({ onNavigate }: CartPageProps) => {
               <div className="space-y-2 sm:space-y-3">
                 <div className="flex justify-between text-xs sm:text-sm">
                   <span className="text-white/70">{tf('cart.subtotal', 'Subtotal')}</span>
-                  <span className="text-white tabular-nums">${cartTotal.toFixed(2)}</span>
+                  <span className="text-white tabular-nums">₩{cartTotal.toLocaleString('ko-KR')}</span>
                 </div>
                 <div className="flex justify-between text-xs sm:text-sm">
                   <span className="text-white/70">{tf('cart.shipping', 'Shipping')}</span>
-                  <span className="text-white tabular-nums">${shippingCost.toFixed(2)}</span>
+                  <span className="text-white tabular-nums">₩{shippingCost.toLocaleString('ko-KR')}</span>
                 </div>
                 <div className="pt-2 sm:pt-3 border-t border-white/10 flex justify-between">
                   <span className="text-white text-sm sm:text-base">{tf('cart.total', 'Total')}</span>
-                  <span className="text-white text-base sm:text-lg tabular-nums">${total.toFixed(2)}</span>
+                  <span className="text-white text-base sm:text-lg tabular-nums">₩{total.toLocaleString('ko-KR')}</span>
                 </div>
               </div>
 

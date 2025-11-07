@@ -52,7 +52,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onNa
         <div className="text-base font-medium text-white group-hover:text-[#5842FF] transition-colors">
           {product.name}
         </div>
-        <div className="text-lg font-bold text-[#5842FF]">${product.price}</div>
+        <div className="text-lg font-bold text-[#5842FF]">₩{Number(product.price).toLocaleString('ko-KR')}</div>
       </div>
     </div>
   );

@@ -178,7 +178,7 @@ export function ShopPage() {
                     <p className="text-white/60 text-xs sm:text-sm mb-1">{product.artist}</p>
                   )}
                   <h3 className="text-white mb-2 text-sm sm:text-base">{product.title || product.name}</h3>
-                  <p className="text-[#5842FF]">${product.price}</p>
+                  <p className="text-[#5842FF]">₩{Number(product.price).toLocaleString('ko-KR')}</p>
                 </div>
               </Link>
             </motion.div>

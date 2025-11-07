@@ -330,7 +330,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
                 {product.name}
               </h1>
               <p className="text-2xl lg:text-3xl text-[#5842FF] font-semibold mb-4">
-                ${product.price}
+                ₩{Number(product.price).toLocaleString('ko-KR')}
               </p>
               
               {/* 리뷰 섹션 */}

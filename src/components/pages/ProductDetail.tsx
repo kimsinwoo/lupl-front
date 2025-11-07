@@ -349,13 +349,6 @@ export function ProductDetail() {
             transition={{ duration: 0.8 }}
             className="order-1 lg:order-2"
           >
-            <div className="max-w-md mx-auto aspect-square rounded-lg overflow-hidden bg-white/5 border border-white/10 mb-4">
-              <ImageWithFallback
-                src={product.images?.[selectedImage] ?? product.image}
-                alt={product.title ?? product.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
             {product.images && product.images.length > 1 && (
               <div className="grid grid-cols-4 gap-2 sm:gap-4">
                 {product.images.map((img, index) => (
@@ -400,7 +393,7 @@ export function ProductDetail() {
             </div>
 
             <p className="text-[#5842FF] mb-4 text-xl sm:text-2xl">
-              {typeof product.price === 'number' ? `$${product.price.toFixed(2)}` : product.price}
+              {typeof product.price === 'number' ? `₩${Number(product.price).toLocaleString('ko-KR')}` : product.price}
             </p>
 
             {/* 리뷰 요약/열기 */}
