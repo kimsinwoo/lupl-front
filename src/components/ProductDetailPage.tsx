@@ -293,6 +293,13 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
           {/* Product Images */}
           <div className="space-y-4">
+            <div className="aspect-square overflow-hidden bg-white/5 rounded-lg">
+              <ImageWithFallback
+                src={product.images?.[currentImageIndex] || product.image}
+                alt={product.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
             {product.images && product.images.length > 1 && (
               <div className="grid grid-cols-4 gap-4">
                 {product.images.map((img: string, idx: number) => (
