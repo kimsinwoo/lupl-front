@@ -20,6 +20,7 @@ interface CartContextType {
   clearCart: () => Promise<void>;
   cartTotal: number;
   isLoading: boolean;
+  loadCartFromServer: () => Promise<void>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -287,7 +288,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const cartTotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, cartTotal, isLoading }}>
+    <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, cartTotal, isLoading, loadCartFromServer }}>
       {children}
     </CartContext.Provider>
   );

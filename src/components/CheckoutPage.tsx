@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
 import { orderService } from '../services/order.service';
 import { paymentService } from '../services/payment.service';
+import { cartService } from '../services/cart.service';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -27,7 +28,7 @@ export const CheckoutPage = ({ onNavigate }: CheckoutPageProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t, language } = useLanguage();
-  const { cart, cartTotal, clearCart } = useCart();
+  const { cart, cartTotal, clearCart, loadCartFromServer } = useCart();
   const { user } = useUser();
   const [step, setStep] = useState(1);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
@@ -137,138 +138,49 @@ export const CheckoutPage = ({ onNavigate }: CheckoutPageProps) => {
     ? (directPurchaseProduct.price * (directPurchaseProduct.quantity || 1))
     : cartTotal;
     
-  const shippingCostDisplay = displayTotal > 0 ? 15000 : 0; // ₩15,000 배송비
+  const shippingCostDisplay = displayTotal > 0 ? 3000 : 0; // ₩3,000 배송비
   const total = displayTotal + shippingCostDisplay;
   
-  // totalAmount: 원화로 표시
+  // totalAmount: 원화 금액
   const totalAmount = Math.floor(total);
   
-  // 토스페이먼츠 스크립트 로드 - 필요할 때만 로드
-  useEffect(() => {
-    // Step 3이고 카드 결제 방법일 때만 스크립트 로드
-    if (step === 3 && paymentMethod === 'card' && !window.TossPayments) {
-      const script = document.createElement('script');
-      script.src = 'https://js.tosspayments.com/v1/payment-widget';
-      script.async = true;
-      script.defer = true;
-      script.crossOrigin = 'anonymous';
-      script.onload = () => {
-        console.log('✅ TossPayments script loaded');
-      };
-      script.onerror = () => {
-        console.error('❌ Failed to load TossPayments script');
-        toast.error('결제 시스템을 불러올 수 없습니다. 페이지를 새로고침해주세요.');
-      };
-      document.body.appendChild(script);
-      
-      return () => {
-        // Cleanup: only remove script if it was added by this effect
-        const existingScript = document.querySelector('script[src="https://js.tosspayments.com/v1/payment-widget"]');
-        if (existingScript && existingScript.parentNode) {
-          existingScript.parentNode.removeChild(existingScript);
-        }
-      };
-    }
-  }, [step, paymentMethod]);
-
   // Step 3으로 이동하면 결제 위젯 초기화
   useEffect(() => {
-    let checkInterval: NodeJS.Timeout | null = null;
-    let isMounted = true;
-    
     const initPaymentWidget = async () => {
-      if (step === 3 && paymentMethod === 'card') {
-        // 이전 위젯 정리
-        if (paymentWidgets) {
-          try {
-            (paymentWidgets as any).unmount?.('#payment-method');
-            (paymentWidgets as any).unmount?.('#agreement');
-          } catch (e) {
-            console.warn('Failed to unmount previous widgets:', e);
-          }
-          setPaymentWidgets(null);
+      if (step === 3 && paymentMethod === 'card' && window.TossPayments) {
+        try {
+          const clientKey = (import.meta as any).env?.VITE_TOSS_CLIENT_KEY || 'test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm';
+          const customerKey = window.TossPayments.ANONYMOUS;
+          const tossPayments = window.TossPayments(clientKey);
+          const widgets = tossPayments.widgets({ customerKey });
+          
+          // 금액 설정
+          await widgets.setAmount({
+            currency: 'KRW',
+            value: totalAmount,
+          });
+          
+          // UI 렌더링
+          await Promise.all([
+            widgets.renderPaymentMethods({ selector: '#payment-method', variantKey: 'DEFAULT' }),
+            widgets.renderAgreement({ selector: '#agreement', variantKey: 'AGREEMENT' })
+          ]);
+          
+          setPaymentWidgets(widgets);
+          console.log('✅ Payment widgets initialized');
+        } catch (error) {
+          console.error('❌ Failed to initialize payment widgets:', error);
         }
-        
-        // DOM 요소 확인
-        const paymentMethodEl = document.getElementById('payment-method');
-        const agreementEl = document.getElementById('agreement');
-        
-        if (!paymentMethodEl || !agreementEl) {
-          console.warn('Payment widget containers not found');
-          return;
-        }
-        
-        // TossPayments 스크립트가 로드될 때까지 대기
-        let retries = 0;
-        checkInterval = setInterval(async () => {
-          if (window.TossPayments) {
-            if (checkInterval) {
-              clearInterval(checkInterval);
-              checkInterval = null;
-            }
-            
-            if (!isMounted) return;
-            
-            try {
-              // 환경 변수에서 clientKey 가져오기 (없으면 테스트 키 사용)
-              const clientKey = (import.meta as any).env?.VITE_TOSS_CLIENT_KEY || 'test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm';
-              const customerKey = window.TossPayments.ANONYMOUS;
-              const tossPayments = window.TossPayments(clientKey);
-              const widgets = tossPayments.widgets({ customerKey });
-              
-              // 금액 설정
-              await widgets.setAmount({
-                currency: 'KRW',
-                value: totalAmount,
-              });
-              
-              // UI 렌더링
-              await Promise.all([
-                widgets.renderPaymentMethods({ selector: '#payment-method', variantKey: 'DEFAULT' }),
-                widgets.renderAgreement({ selector: '#agreement', variantKey: 'AGREEMENT' })
-              ]);
-              
-              if (isMounted) {
-                setPaymentWidgets(widgets);
-                console.log('✅ Payment widgets initialized');
-              }
-            } catch (error: any) {
-              console.error('❌ Failed to initialize payment widgets:', error);
-              if (isMounted) {
-                toast.error(error.message || '결제 위젯 초기화에 실패했습니다.');
-              }
-            }
-          } else {
-            retries++;
-            if (retries > 50) { // 5초 후 타임아웃
-              if (checkInterval) {
-                clearInterval(checkInterval);
-                checkInterval = null;
-              }
-              if (isMounted) {
-                console.error('❌ TossPayments script failed to load');
-                toast.error('결제 시스템을 불러올 수 없습니다. 페이지를 새로고침해주세요.');
-              }
-            }
-          }
-        }, 100);
       }
     };
     
     initPaymentWidget();
     
+    // Cleanup
     return () => {
-      isMounted = false;
-      if (checkInterval) {
-        clearInterval(checkInterval);
-      }
       if (paymentWidgets) {
-        try {
-          (paymentWidgets as any).unmount?.('#payment-method');
-          (paymentWidgets as any).unmount?.('#agreement');
-        } catch (e) {
-          console.warn('Failed to unmount widgets on cleanup:', e);
-        }
+        paymentWidgets.unmount?.('#payment-method');
+        paymentWidgets.unmount?.('#agreement');
       }
     };
   }, [step, paymentMethod, totalAmount]);
@@ -301,16 +213,36 @@ export const CheckoutPage = ({ onNavigate }: CheckoutPageProps) => {
     console.log('🛒 Cart total:', displayTotal);
     console.log('🛒 Is direct purchase:', isDirectPurchase);
     
+    // 장바구니가 비어있는지 확인
+    if (!displayCart || displayCart.length === 0) {
+      toast.error(t('checkout.emptyCart') || '장바구니가 비어있습니다.');
+      return;
+    }
+    
     setIsPlacingOrder(true);
     try {
-      // 주문에 포함할 items 준비
-      const orderItems = displayCart.map((item) => ({
-        productId: item.productId,
-        variantId: item.variantId || null,
-        quantity: item.quantity || 1,
-      }));
+      // 직접 구매인 경우, 먼저 Cart에 상품 추가
+      if (isDirectPurchase && directPurchaseProduct) {
+        console.log('🛒 Direct purchase: Adding product to cart first');
+        try {
+          await cartService.addToCart({
+            productId: directPurchaseProduct.id,
+            variantId: directPurchaseProduct.variantId,
+            quantity: directPurchaseProduct.quantity || 1,
+          });
+          // Cart를 다시 로드하여 최신 상태 유지
+          await loadCartFromServer();
+          console.log('✅ Product added to cart for direct purchase');
+        } catch (cartError: any) {
+          console.error('❌ Failed to add product to cart:', cartError);
+          // 이미 Cart에 있는 경우 무시하고 진행
+          if (!cartError.response?.data?.message?.includes('already')) {
+            throw new Error('장바구니에 상품을 추가할 수 없습니다.');
+          }
+        }
+      }
       
-      // 먼저 주문 생성
+      // 먼저 주문 생성 (정상 코드와 동일하게 items 전송하지 않음)
       const orderData = {
         shippingName: `${formData.firstName} ${formData.lastName}`,
         shippingPhone: formData.phone || '',
@@ -320,8 +252,7 @@ export const CheckoutPage = ({ onNavigate }: CheckoutPageProps) => {
         shippingZip: formData.postalCode,
         shippingCountry: formData.country || 'Korea',
         paymentMethod: paymentMethod,
-        notes: '',
-        items: orderItems  // items 배열 추가
+        notes: ''
       };
       
       console.log('📦 Creating order with data:', orderData);
@@ -345,15 +276,15 @@ export const CheckoutPage = ({ onNavigate }: CheckoutPageProps) => {
       if (paymentMethod === 'card') {
         // Toss Payments v2 위젯으로 결제
         if (!paymentWidgets) {
-          throw new Error(t('checkout.paymentWidgetNotReady'));
+          throw new Error('결제 위젯이 초기화되지 않았습니다. 잠시 후 다시 시도해주세요.');
         }
         
-        console.log('💳 Requesting payment with widgets...');
         const orderItemCount = displayCart.length;
         const orderName = isDirectPurchase 
           ? `${directPurchaseProduct.name || directPurchaseProduct.title}`
           : `Lupl 주문 (${orderItemCount}개 상품)`;
         
+        console.log('💳 Requesting payment with widgets...');
         console.log('💳 Payment params:', {
           orderId: `LUPL-${actualOrderId}`,
           orderName: orderName,
@@ -363,20 +294,15 @@ export const CheckoutPage = ({ onNavigate }: CheckoutPageProps) => {
         });
         
         // 결제창 열기
-        try {
-          await (paymentWidgets as any).requestPayment({
-            orderId: `LUPL-${actualOrderId}`,
-            orderName: orderName,
-            successUrl: `${window.location.origin}/checkout/success?amount=${totalAmount}&orderId=${actualOrderId}`,
-            failUrl: `${window.location.origin}/checkout/fail`,
-            customerEmail: formData.email,
-            customerName: `${formData.firstName} ${formData.lastName}`,
-            customerMobilePhone: formData.phone,
-          });
-        } catch (error: any) {
-          console.error('❌ Payment request error:', error);
-          throw new Error(error.message || '결제 요청에 실패했습니다.');
-        }
+        await paymentWidgets.requestPayment({
+          orderId: `LUPL-${actualOrderId}`,
+          orderName: orderName,
+          successUrl: `${window.location.origin}/checkout/success?amount=${totalAmount}&orderId=${actualOrderId}`,
+          failUrl: `${window.location.origin}/checkout/fail`,
+          customerEmail: formData.email,
+          customerName: `${formData.firstName} ${formData.lastName}`,
+          customerMobilePhone: formData.phone,
+        });
         
         // 결제창이 열리면 아래 코드는 실행되지 않음 (successUrl로 리다이렉트)
       } else {
@@ -700,17 +626,13 @@ export const CheckoutPage = ({ onNavigate }: CheckoutPageProps) => {
                 {paymentMethod === 'card' ? (
                   <>
                     {/* 토스페이먼츠 위젯 */}
-                    <div className="mb-6">
-                      <div id="payment-method" className="bg-white rounded-lg p-4"></div>
-                    </div>
-                    <div className="mb-6">
-                      <div id="agreement"></div>
-                    </div>
+                    <div id="payment-method"></div>
+                    <div id="agreement"></div>
                     
                     <Button
                       onClick={handlePlaceOrder}
-                      disabled={isPlacingOrder || !paymentWidgets}
-                      className="w-full py-5 sm:py-6 bg-[#5842FF] text-white hover:bg-[#5842FF]/80 tracking-[0.15em] text-sm sm:text-base disabled:opacity-50"
+                      disabled={isPlacingOrder}
+                      className="w-full py-5 sm:py-6 bg-[#5842FF] text-white hover:bg-[#5842FF]/80 tracking-[0.15em] text-sm sm:text-base"
                     >
                       {isPlacingOrder ? t('checkout.processing') : t('checkout.pay')}
                     </Button>

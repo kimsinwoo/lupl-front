@@ -34,7 +34,7 @@ export const CheckoutSuccessPage = () => {
 
         if (!paymentKey || !orderId || !amount) {
           console.error('❌ Missing payment parameters');
-          throw new Error(t('checkout.paymentFailed'));
+          throw new Error('결제 정보가 올바르지 않습니다');
         }
 
         // orderId에 LUPL- 접두어 추가 (토스페이먼츠에 보낸 형식과 일치)
@@ -42,11 +42,10 @@ export const CheckoutSuccessPage = () => {
         
         console.log('💰 Confirming payment with:', { paymentKey, tossOrderId, amount });
 
-        // 결제 승인 - orderId는 접두어 없이 실제 주문 ID를 전달
+        // 결제 승인
         await paymentService.confirmPayment({
           paymentKey,
-          orderId: orderId, // 실제 주문 ID (접두어 없음)
-          tossOrderId: tossOrderId, // 토스페이먼츠에 보낸 형식
+          orderId: tossOrderId, // 토스페이먼츠에 보낸 형식 사용
           amount: parseInt(amount, 10)
         });
 

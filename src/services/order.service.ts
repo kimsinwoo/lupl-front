@@ -50,6 +50,11 @@ export interface CreateOrderRequest {
   shippingCountry?: string;
   notes?: string;
   paymentMethod?: string;
+  items?: Array<{
+    productId: string;
+    variantId: string | null;
+    quantity: number;
+  }>;
 }
 
 export interface OrdersResponse {
