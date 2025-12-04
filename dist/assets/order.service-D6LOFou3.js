@@ -1,0 +1,1 @@
+import{a as e}from"./index-ZnnOu7UN.js";const s={createOrder:async r=>e.post("/orders",r),getMyOrders:async r=>e.get("/orders",{params:r}),getOrderById:async r=>e.get(`/orders/${r}`),cancelOrder:async r=>e.put(`/orders/${r}/cancel`)};export{s as o};

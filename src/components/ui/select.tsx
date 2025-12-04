@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import * as SelectPrimitive from "@radix-ui/react-select@2.1.6";
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react@0.487.0";
+import * as SelectPrimitive from "@radix-ui/react-select";
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { cn } from "./utils";
 
 // Root
@@ -20,7 +20,7 @@ function SelectValue(props: React.ComponentProps<typeof SelectPrimitive.Value>) 
   return <SelectPrimitive.Value data-slot="select-value" {...props} />;
 }
 
-// Trigger (항상 흰 배경)
+// Trigger (??�� ??배경)
 function SelectTrigger({
   className,
   size = "default",
@@ -39,12 +39,12 @@ function SelectTrigger({
         "focus-visible:ring-[3px] focus-visible:border-ring focus-visible:ring-ring/50",
         "disabled:cursor-not-allowed disabled:opacity-50",
         "data-[size=default]:h-9 data-[size=sm]:h-8",
-        "border-input bg-white !bg-white text-foreground", // ✅ 흰 배경 고정
+        "border-input bg-white !bg-white text-foreground", // ????배경 고정
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         "data-[placeholder]:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground",
         className
       )}
-      style={{ backgroundColor: "#fff" }} // ✅ inline 강제
+      style={{ backgroundColor: "#fff" }} // ??inline 강제
       {...props}
     >
       {children}
@@ -55,7 +55,7 @@ function SelectTrigger({
   );
 }
 
-// Content (항상 흰 배경)
+// Content (??�� ??배경)
 function SelectContent({
   className,
   children,
@@ -68,7 +68,7 @@ function SelectContent({
         data-slot="select-content"
         className={cn(
           "relative z-50 min-w-[8rem] overflow-x-hidden overflow-y-auto rounded-md border shadow-md",
-          "bg-white !bg-white text-foreground", // ✅ 흰 배경 고정
+          "bg-white !bg-white text-foreground", // ????배경 고정
           "data-[state=open]:animate-in data-[state=closed]:animate-out",
           "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
           "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -79,17 +79,17 @@ function SelectContent({
           className
         )}
         position={position}
-        style={{ backgroundColor: "#fff" }} // ✅ inline 강제
+        style={{ backgroundColor: "#fff" }} // ??inline 강제
         {...props}
       >
         <SelectScrollUpButton />
         <SelectPrimitive.Viewport
           className={cn(
-            "p-1 bg-white !bg-white", // ✅ 뷰포트도 흰색
+            "p-1 bg-white !bg-white", // ??뷰포?�도 ?�색
             position === "popper" &&
               "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)] scroll-my-1"
           )}
-          style={{ backgroundColor: "#fff" }} // ✅ inline 강제
+          style={{ backgroundColor: "#fff" }} // ??inline 강제
         >
           {children}
         </SelectPrimitive.Viewport>
@@ -113,7 +113,7 @@ function SelectLabel({
   );
 }
 
-// Item (체크 아이콘을 왼쪽으로 이동 + pl-8로 겹침 방지, 항상 흰 배경)
+// Item (체크 ?�이콘을 ?�쪽?�로 ?�동 + pl-8�?겹침 방�?, ??�� ??배경)
 function SelectItem({
   className,
   style,
@@ -125,22 +125,22 @@ function SelectItem({
       data-slot="select-item"
       className={cn(
         "relative flex w-full select-none items-center gap-2 rounded-sm text-sm outline-hidden",
-        // 기본 여백
+        // 기본 ?�백
         "py-1.5 pr-3 !pl-8 cursor-default",
-        // 항상 흰 배경
+        // ??�� ??배경
         "bg-white",
-        // 상호작용 상태
+        // ?�호?�용 ?�태
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         "data-[highlighted]:bg-neutral-100 data-[highlighted]:text-foreground",
-        // 아이콘 공통
+        // ?�이�?공통
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
-      // ✅ 외부 px/pl 덮어쓰기를 무력화 (최우선)
+      // ???��? px/pl ??��?�기�?무력??(최우??
       style={{ paddingLeft: 32, ...style }}
       {...props}
     >
-      {/* ✅ 체크 아이콘: 왼쪽 고정, 텍스트와 겹치지 않도록 z-index 낮춤 */}
+      {/* ??체크 ?�이�? ?�쪽 고정, ?�스?��? 겹치지 ?�도�?z-index ??�� */}
       <span className="absolute left-0 top-1/2 -translate-y-1/2 z-0 flex size-4 items-center justify-center" style={{ paddingLeft: "17px" }}q>
         <SelectPrimitive.ItemIndicator>
           <CheckIcon className="size-4" />
@@ -168,7 +168,7 @@ function SelectSeparator({
   );
 }
 
-// Scroll Buttons (흰 배경)
+// Scroll Buttons (??배경)
 function SelectScrollUpButton({
   className,
   ...props

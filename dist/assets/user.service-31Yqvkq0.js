@@ -1,0 +1,1 @@
+import{a as e}from"./index-ZnnOu7UN.js";const a={getProfile:async()=>e.get("/users/profile"),updateProfile:async r=>e.put("/users/profile",r),changePassword:async(r,s)=>e.put("/users/password",{currentPassword:r,newPassword:s})};export{a as userService};

@@ -1,0 +1,1 @@
+import{a as t}from"./index-ZnnOu7UN.js";const o={getFavorites:async()=>t.get("/favorites"),addFavorite:async e=>t.post("/favorites/add",{productId:e}),removeFavorite:async e=>t.delete(`/favorites/remove/${e}`),toggleFavorite:async e=>(await t.post("/favorites/toggle",{productId:e})).data};export{o as favoriteService};
