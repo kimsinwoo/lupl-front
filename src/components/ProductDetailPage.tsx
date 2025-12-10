@@ -20,6 +20,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
   const { language, t } = useLanguage();
   const { addToCart } = useCart();
   const { user } = useUser();
+
   const [product, setProduct] = useState<any>(null);
   const [productVariants, setProductVariants] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,19 +32,19 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
   const [averageRating, setAverageRating] = useState<number>(0);
   const [isReviewsDialogOpen, setIsReviewsDialogOpen] = useState(false);
   const [isLoadingReviews, setIsLoadingReviews] = useState(false);
-  
+
   useEffect(() => {
     if (!productId) return;
     loadProduct();
     loadReviews();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId]);
-  
+
   const loadProduct = async () => {
     try {
       setLoading(true);
       const response = await productService.getById(productId);
-      
+
       const responseAny: any = response;
       let actualData: any = responseAny;
       if (responseAny?.data && (responseAny?.status || responseAny?.headers)) {
@@ -52,9 +53,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
       if (actualData?.data?.data) {
         actualData = actualData.data;
       }
-      
+
       const productData = actualData?.data || actualData;
-      
+
       if (productData) {
         let images: string[] = [];
         try {
@@ -71,23 +72,23 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
         if (productData.variants && Array.isArray(productData.variants)) {
           setProductVariants(productData.variants);
         }
-        
+
         const sizesSet = new Set<string>();
         const colorsSet = new Set<string>();
-        
+
         if (productData.variants && Array.isArray(productData.variants)) {
           productData.variants.forEach((v: any) => {
             if (v.size) sizesSet.add(v.size);
             if (v.color) colorsSet.add(v.color);
           });
         }
-        
+
         const sizes = sizesSet.size > 0 ? Array.from(sizesSet) : ['S', 'M', 'L'];
         const colors = colorsSet.size > 0 ? Array.from(colorsSet) : ['Black'];
 
         setProduct({
           ...productData,
-          images: images,
+          images,
           image: images[0] || '',
           category: productData.category?.slug || 'accessories',
           gender: productData.gender || 'unisex',
@@ -105,35 +106,33 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
       setLoading(false);
     }
   };
-  
+
   const loadReviews = async () => {
     if (!productId) return;
-    
+
     try {
       setIsLoadingReviews(true);
       const response = await reviewService.getProductReviews(productId);
-      
-      // API 응답 구조 확인 및 파싱
+
       let reviewsData: Review[] = [];
-      
+
       if (Array.isArray(response)) {
         reviewsData = response;
       } else if (response && typeof response === 'object') {
-        // { success: true, data: Review[] } 형식
-        if (Array.isArray(response.data)) {
-          reviewsData = response.data;
-        } 
-        // { data: { data: Review[] } } 형식
-        else if (response.data && Array.isArray(response.data.data)) {
-          reviewsData = response.data.data;
+        if (Array.isArray((response as any).data)) {
+          reviewsData = (response as any).data;
+        } else if ((response as any).data && Array.isArray((response as any).data.data)) {
+          reviewsData = (response as any).data.data;
         }
       }
-      
+
       setReviews(reviewsData || []);
-      
-      // 평균 별점 계산
+
       if (reviewsData && reviewsData.length > 0) {
-        const sum = reviewsData.reduce((acc: number, review: Review) => acc + (review.rating || 0), 0);
+        const sum = reviewsData.reduce(
+          (acc: number, review: Review) => acc + (review.rating || 0),
+          0,
+        );
         const avg = sum / reviewsData.length;
         setAverageRating(Number(avg.toFixed(1)));
       } else {
@@ -154,19 +153,19 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
       onNavigate('login');
       return;
     }
-    
+
     if (!selectedSize || !selectedColor) {
       toast.error('사이즈와 색상을 선택해주세요');
       return;
     }
-    
+
     try {
       let variantId: string | null = null;
-      
+
       const existingVariant = productVariants.find(
-        (v: any) => v.size === selectedSize && v.color === selectedColor
+        (v: any) => v.size === selectedSize && v.color === selectedColor,
       );
-      
+
       if (existingVariant) {
         variantId = existingVariant.id;
       } else {
@@ -174,16 +173,16 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
           const variantResponse = await productService.getVariantBySizeAndColor(
             productId,
             selectedSize,
-            selectedColor
+            selectedColor,
           );
-          
-          let variantData = variantResponse;
+
+          let variantData = variantResponse as any;
           if ((variantResponse as any).data?.data) {
             variantData = (variantResponse as any).data;
           } else if ((variantResponse as any).data) {
             variantData = (variantResponse as any).data;
           }
-          
+
           if (variantData?.id || (variantData as any).data?.id) {
             variantId = variantData?.id || (variantData as any).data?.id;
           }
@@ -192,12 +191,12 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
           return;
         }
       }
-      
+
       if (!variantId) {
         toast.error('상품 옵션을 찾을 수 없습니다');
         return;
       }
-      
+
       await addToCart(product, selectedSize, selectedColor, variantId);
       setTimeout(() => {
         onNavigate('cart');
@@ -213,19 +212,19 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
       onNavigate('login');
       return;
     }
-    
+
     if (!selectedSize || !selectedColor) {
       toast.error('사이즈와 색상을 선택해주세요');
       return;
     }
-    
+
     try {
       let variantId: string | null = null;
-      
+
       const existingVariant = productVariants.find(
-        (v: any) => v.size === selectedSize && v.color === selectedColor
+        (v: any) => v.size === selectedSize && v.color === selectedColor,
       );
-      
+
       if (existingVariant) {
         variantId = existingVariant.id;
       } else {
@@ -233,16 +232,16 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
           const variantResponse = await productService.getVariantBySizeAndColor(
             productId,
             selectedSize,
-            selectedColor
+            selectedColor,
           );
-          
-          let variantData = variantResponse;
+
+          let variantData = variantResponse as any;
           if ((variantResponse as any).data?.data) {
             variantData = (variantResponse as any).data;
           } else if ((variantResponse as any).data) {
             variantData = (variantResponse as any).data;
           }
-          
+
           if (variantData?.id || (variantData as any).data?.id) {
             variantId = variantData?.id || (variantData as any).data?.id;
           }
@@ -251,12 +250,12 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
           return;
         }
       }
-      
+
       if (!variantId) {
         toast.error('상품 옵션을 찾을 수 없습니다');
         return;
       }
-      
+
       await addToCart(product, selectedSize, selectedColor, variantId);
       setTimeout(() => {
         onNavigate('checkout');
@@ -273,7 +272,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
       </div>
     );
   }
-  
+
   if (!product) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -283,7 +282,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
   }
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
@@ -307,8 +306,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
                     key={idx}
                     onClick={() => setCurrentImageIndex(idx)}
                     className={`aspect-square overflow-hidden bg-white/5 rounded-lg border-2 transition-all ${
-                      currentImageIndex === idx 
-                        ? 'border-[#5842FF]' 
+                      currentImageIndex === idx
+                        ? 'border-[#5842FF]'
                         : 'border-transparent hover:border-white/20'
                     }`}
                   >
@@ -332,7 +331,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
               <p className="text-2xl lg:text-3xl text-[#5842FF] font-semibold mb-4">
                 ₩{Number(product.price).toLocaleString('ko-KR')}
               </p>
-              
+
               {/* 리뷰 섹션 */}
               <button
                 onClick={() => setIsReviewsDialogOpen(true)}
@@ -362,15 +361,10 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
                   <>
                     <div className="flex items-center gap-1">
                       {[1, 2, 3, 4, 5].map((rating) => (
-                        <Star
-                          key={rating}
-                          className="w-5 h-5 text-white/30"
-                        />
+                        <Star key={rating} className="w-5 h-5 text-white/30" />
                       ))}
                     </div>
-                    <span className="text-white/50 text-sm">
-                      아직 리뷰가 없습니다
-                    </span>
+                    <span className="text-white/50 text-sm">아직 리뷰가 없습니다</span>
                   </>
                 )}
               </button>
@@ -378,11 +372,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
 
             {/* Size Selection */}
             <div>
-              <h3 className="text-sm uppercase tracking-wider text-white/60 mb-4">
-                Size
-              </h3>
+              <h3 className="text-sm uppercase tracking-wider text-white/60 mb-4">Size</h3>
               <div className="flex flex-wrap gap-3">
-                {product.sizes.map((size) => (
+                {product.sizes.map((size: string) => (
                   <button
                     key={size}
                     onClick={() => setSelectedSize(size)}
@@ -400,11 +392,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
 
             {/* Color Selection */}
             <div>
-              <h3 className="text-sm uppercase tracking-wider text-white/60 mb-4">
-                Color
-              </h3>
+              <h3 className="text-sm uppercase tracking-wider text-white/60 mb-4">Color</h3>
               <div className="flex flex-wrap gap-3">
-                {product.colors.map((color) => (
+                {product.colors.map((color: string) => (
                   <button
                     key={color}
                     onClick={() => setSelectedColor(color)}
@@ -422,9 +412,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
 
             {/* Quantity */}
             <div>
-              <h3 className="text-sm uppercase tracking-wider text-white/60 mb-4">
-                Quantity
-              </h3>
+              <h3 className="text-sm uppercase tracking-wider text-white/60 mb-4">Quantity</h3>
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -489,18 +477,22 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
           </div>
         </div>
       </div>
-      
+
       {/* 리뷰 목록 다이얼로그 */}
       <Dialog open={isReviewsDialogOpen} onOpenChange={setIsReviewsDialogOpen}>
         <DialogContent className="bg-black border-white/20 text-white max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white text-xl">리뷰 ({reviews.length}개)</DialogTitle>
+            <DialogTitle className="text-white text-xl">
+              리뷰 ({reviews.length}개)
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">
             {isLoadingReviews ? (
               <div className="text-center py-8 text-white/70">리뷰를 불러오는 중...</div>
             ) : reviews.length === 0 ? (
-              <div className="text-center py-8 text-white/70">아직 작성된 리뷰가 없습니다.</div>
+              <div className="text-center py-8 text-white/70">
+                아직 작성된 리뷰가 없습니다.
+              </div>
             ) : (
               reviews.map((review) => (
                 <div
@@ -536,6 +528,20 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* ✅ 고정 디테일 이미지 섹션 (맨 밑) */}
+      <section className="max-w-5xl mx-auto mt-12 px-4 sm:px-6 lg:px-8 pb-16">
+        <h3 className="text-sm uppercase tracking-wider text-white/60 mb-4">
+          Detail View
+        </h3>
+        <div className="w-full overflow-hidden rounded-lg bg-white/5">
+          <ImageWithFallback
+            src="https://cdn-optimized.imweb.me/upload/S2020122915149b53b6c77/427cdb6116ac3.png?w=1536"
+            alt={`${product.name} detail`}
+            className="w-full h-auto object-cover"
+          />
+        </div>
+      </section>
     </motion.div>
   );
 };
