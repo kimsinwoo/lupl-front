@@ -17,7 +17,7 @@ interface ProductDetailPageProps {
 }
 
 export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId, onNavigate }) => {
-  const { language, t } = useLanguage();
+  const { t } = useLanguage();
   const { addToCart } = useCart();
   const { user } = useUser();
 
@@ -186,7 +186,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
           if (variantData?.id || (variantData as any).data?.id) {
             variantId = variantData?.id || (variantData as any).data?.id;
           }
-        } catch (variantError: any) {
+        } catch {
           toast.error(`사이즈(${selectedSize})와 색상(${selectedColor}) 조합을 찾을 수 없습니다`);
           return;
         }
@@ -245,7 +245,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
           if (variantData?.id || (variantData as any).data?.id) {
             variantId = variantData?.id || (variantData as any).data?.id;
           }
-        } catch (variantError: any) {
+        } catch {
           toast.error(`사이즈(${selectedSize})와 색상(${selectedColor}) 조합을 찾을 수 없습니다`);
           return;
         }
@@ -289,6 +289,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
       className="min-h-screen bg-black pt-24 sm:pt-32 pb-16 sm:pb-24"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* 상단: 이미지 + 정보 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
           {/* Product Images */}
           <div className="space-y-4">
@@ -476,6 +477,20 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
             )}
           </div>
         </div>
+
+        {/* ✅ Detail View 섹션: 메인 컨테이너 안, 그리드 바로 아래 */}
+        <section className="mt-16 border-t border-white/10 pt-8 pb-16">
+          <h3 className="text-sm uppercase tracking-wider text-white/60 mb-4">
+            Detail View
+          </h3>
+          <div className="w-full overflow-hidden rounded-lg bg-white/5">
+            <img
+              src="https://cdn-optimized.imweb.me/upload/S2020122915149b53b6c77/427cdb6116ac3.png?w=1536"
+              alt={`${product.name} detail`}
+              className="w-full h-auto object-cover"
+            />
+          </div>
+        </section>
       </div>
 
       {/* 리뷰 목록 다이얼로그 */}
@@ -528,20 +543,6 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* ✅ 고정 디테일 이미지 섹션 (맨 밑) */}
-      <section className="max-w-5xl mx-auto mt-12 px-4 sm:px-6 lg:px-8 pb-16">
-        <h3 className="text-sm uppercase tracking-wider text-white/60 mb-4">
-          Detail View
-        </h3>
-        <div className="w-full overflow-hidden rounded-lg bg-white/5">
-          <ImageWithFallback
-            src="https://cdn-optimized.imweb.me/upload/S2020122915149b53b6c77/427cdb6116ac3.png?w=1536"
-            alt={`${product.name} detail`}
-            className="w-full h-auto object-cover"
-          />
-        </div>
-      </section>
     </motion.div>
   );
 };
