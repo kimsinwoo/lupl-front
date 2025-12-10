@@ -200,7 +200,7 @@ export const translations = {
     'contact.form.subject': 'Subject',
     'contact.form.subject.placeholder': '문의 제목',
     'contact.form.message': 'Message',
-    'contact.form.message.placeholder': '메시지를 입력해주세요...',
+    'contact.form.message.placeholder': '메시지를 입력해주세요.',
     'contact.form.submit': 'Send Message',
     'contact.form.success': '메시지가 전송되었습니다! 빠른 시일 내에 답변드리겠습니다.',
     'contact.info.title': 'Contact Information',

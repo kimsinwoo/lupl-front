@@ -164,7 +164,7 @@ export function ContactPage() {
                       href="mailto:info@lupl.kr" 
                       className="text-white/70 hover:text-[#5842FF] transition-colors text-sm sm:text-base"
                     >
-                      info@lupl.kr
+                      cs@lupl.kr
                     </a>
                   </div>
                 </div>
@@ -176,10 +176,10 @@ export function ContactPage() {
                   <div>
                     <h3 className="text-white mb-1 text-sm sm:text-base">{t('contact.info.phone')}</h3>
                     <a 
-                      href="tel:+82-2-1234-5678" 
+                      href="tel: +82 10-2593-0554" 
                       className="text-white/70 hover:text-[#5842FF] transition-colors text-sm sm:text-base"
                     >
-                      +82-2-1234-5678
+                      +82 10-2593-0554
                     </a>
                   </div>
                 </div>
