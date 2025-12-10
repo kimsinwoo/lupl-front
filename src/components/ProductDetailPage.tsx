@@ -290,6 +290,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
       transition={{ duration: 0.5 }}
       className="min-h-screen bg-black pt-24 sm:pt-32 pb-16 sm:pb-24"
     >
+                    <img
+                src="https://cdn-optimized.imweb.me/upload/S2020122915149b53b6c77/427cdb6116ac3.png?w=1536"
+                alt={`${product.name} detail`}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* 상단: 이미지 + 정보 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
@@ -494,11 +499,6 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
               }}
               className="w-full aspect-square overflow-hidden rounded-lg bg-white/5 border border-white/10 hover:border-[#5842FF] transition-all cursor-pointer group"
             >
-              <img
-                src="https://cdn-optimized.imweb.me/upload/S2020122915149b53b6c77/427cdb6116ac3.png?w=1536"
-                alt={`${product.name} detail`}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
             </button>
             
             {/* 추가 디테일 이미지가 있다면 표시 */}

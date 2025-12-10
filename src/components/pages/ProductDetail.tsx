@@ -135,7 +135,6 @@ export function ProductDetail() {
     try {
       setLoading(true);
 
-      // 다양한 래핑을 고려하여 안전하게 풀기
       const raw = await productService.getById(productId) as unknown;
       let p: ProductLike | null = null;
 
@@ -165,7 +164,7 @@ export function ProductDetail() {
             images = [parsed];
           }
         } catch {
-          // JSON 파싱 실패시 무시
+          // ignore
         }
       }
 
@@ -178,7 +177,6 @@ export function ProductDetail() {
 
       setProduct(processed);
 
-      // 기본 variant
       if (processed.variants && processed.variants.length > 0) {
         const v0 = processed.variants[0];
         setSelectedVariant({
@@ -187,8 +185,6 @@ export function ProductDetail() {
           color: v0.color,
         });
       }
-
-      // 아티스트 정보는 더 이상 표시하지 않음
     } catch {
       toast.error(language === 'ko' ? '상품을 불러올 수 없습니다' : 'Failed to load product');
     } finally {
@@ -301,7 +297,7 @@ export function ProductDetail() {
                 className="w-full h-full object-cover"
               />
             </div>
-            
+
             {/* Thumbnail Images */}
             {product.images && product.images.length > 1 && (
               <div className="grid grid-cols-4 gap-2 sm:gap-4">
@@ -309,11 +305,10 @@ export function ProductDetail() {
                   <button
                     key={index}
                     onClick={() => setSelectedImage(index)}
-                    className={`aspect-square rounded-lg overflow-hidden bg-white/5 border transition-all duration-300 ${
-                      selectedImage === index
+                    className={`aspect-square rounded-lg overflow-hidden bg-white/5 border transition-all duration-300 ${selectedImage === index
                         ? 'border-[#5842FF]'
                         : 'border-white/10 hover:border-white/30'
-                    }`}
+                      }`}
                   >
                     <ImageWithFallback
                       src={img}
@@ -336,9 +331,8 @@ export function ProductDetail() {
               <h1 className="text-white flex-1">{product.title ?? product.name}</h1>
               <button
                 onClick={() => toggleFavorite(product.id)}
-                className={`p-2 rounded-full transition-all ml-4 ${
-                  isFavorite(product.id) ? 'bg-red-100/10 hover:bg-red-100/20' : 'bg-white/5 hover:bg-white/10'
-                }`}
+                className={`p-2 rounded-full transition-all ml-4 ${isFavorite(product.id) ? 'bg-red-100/10 hover:bg-red-100/20' : 'bg-white/5 hover:bg-white/10'
+                  }`}
                 aria-label={isFavorite(product.id) ? 'Remove from favorites' : 'Add to favorites'}
               >
                 <Heart className={`w-6 h-6 ${isFavorite(product.id) ? 'fill-red-500 text-red-500' : 'text-white'}`} />
@@ -358,12 +352,11 @@ export function ProductDetail() {
                 <StarRating rating={averageRating} size={20} />
                 <span className="text-white/80 text-sm">
                   {reviews.length > 0
-                    ? `(${averageRating.toFixed(1)}) · ${reviews.length}${
-                        language === 'ko' ? '개 리뷰' : ' reviews'
-                      }`
+                    ? `(${averageRating.toFixed(1)}) · ${reviews.length}${language === 'ko' ? '개 리뷰' : ' reviews'
+                    }`
                     : language === 'ko'
-                    ? '아직 리뷰가 없습니다'
-                    : 'No reviews yet'}
+                      ? '아직 리뷰가 없습니다'
+                      : 'No reviews yet'}
                 </span>
               </div>
             </button>
@@ -417,11 +410,10 @@ export function ProductDetail() {
                               color: variant.color,
                             })
                           }
-                          className={`px-4 py-2 rounded-lg border text-sm transition-all ${
-                            selectedVariant?.id === variant.id
+                          className={`px-4 py-2 rounded-lg border text-sm transition-all ${selectedVariant?.id === variant.id
                               ? 'bg-[#5842FF] border-[#5842FF] text-white'
                               : 'bg-transparent border-white/20 text-white/70 hover:border-[#5842FF]'
-                          }`}
+                            }`}
                         >
                           {variant.size} {variant.color ? `- ${variant.color}` : ''}
                         </button>
@@ -450,6 +442,21 @@ export function ProductDetail() {
             </div>
           </motion.div>
         </div>
+
+        {/* ✅ 여기: 디테일 이미지 섹션 추가 (그리드 바로 아래, Dialog 위) */}
+        <section className="mt-16 border-t border-white/10 pt-8 pb-12">
+          {/* 가운데 정렬 + 최대 가로폭 제한 */}
+          <div className="w-full flex justify-center">
+            <div className="w-full max-w-3xl overflow-hidden rounded-lg bg-white/5">
+              <img
+                src="https://cdn-optimized.imweb.me/upload/S2020122915149b53b6c77/427cdb6116ac3.png?w=1536"
+                alt={`${product.title ?? product.name} detail`}
+                className="w-full h-auto object-contain"
+              />
+            </div>
+          </div>
+        </section>
+
       </div>
 
       {/* 리뷰 목록 다이얼로그 */}
@@ -468,8 +475,8 @@ export function ProductDetail() {
               {reviews.length > 0
                 ? `(${averageRating.toFixed(1)}) · ${reviews.length}${language === 'ko' ? '개' : ''}`
                 : language === 'ko'
-                ? '아직 리뷰가 없습니다'
-                : 'No reviews yet'}
+                  ? '아직 리뷰가 없습니다'
+                  : 'No reviews yet'}
             </span>
           </div>
 
