@@ -9,7 +9,7 @@ import { reviewService, Review } from '../services/review.service';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { toast } from 'sonner';
 import { motion } from 'motion/react';
-import { ShoppingBag, Minus, Plus, Star } from 'lucide-react';
+import { ShoppingBag, Minus, Plus, Star, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ProductDetailPageProps {
   productId: string;
@@ -32,6 +32,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
   const [averageRating, setAverageRating] = useState<number>(0);
   const [isReviewsDialogOpen, setIsReviewsDialogOpen] = useState(false);
   const [isLoadingReviews, setIsLoadingReviews] = useState(false);
+  const [isDetailImageViewOpen, setIsDetailImageViewOpen] = useState(false);
+  const [selectedDetailImageIndex, setSelectedDetailImageIndex] = useState<number>(0);
 
   useEffect(() => {
     if (!productId) return;
@@ -483,12 +485,39 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
           <h3 className="text-sm uppercase tracking-wider text-white/60 mb-4">
             Detail View
           </h3>
-          <div className="w-full overflow-hidden rounded-lg bg-white/5">
-            <img
-              src="https://cdn-optimized.imweb.me/upload/S2020122915149b53b6c77/427cdb6116ac3.png?w=1536"
-              alt={`${product.name} detail`}
-              className="w-full h-auto object-cover"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* 기본 디테일 이미지 */}
+            <button
+              onClick={() => {
+                setSelectedDetailImageIndex(0);
+                setIsDetailImageViewOpen(true);
+              }}
+              className="w-full aspect-square overflow-hidden rounded-lg bg-white/5 border border-white/10 hover:border-[#5842FF] transition-all cursor-pointer group"
+            >
+              <img
+                src="https://cdn-optimized.imweb.me/upload/S2020122915149b53b6c77/427cdb6116ac3.png?w=1536"
+                alt={`${product.name} detail`}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+            </button>
+            
+            {/* 추가 디테일 이미지가 있다면 표시 */}
+            {product.images && product.images.length > 1 && product.images.slice(1).map((img: string, idx: number) => (
+              <button
+                key={idx + 1}
+                onClick={() => {
+                  setSelectedDetailImageIndex(idx + 1);
+                  setIsDetailImageViewOpen(true);
+                }}
+                className="w-full aspect-square overflow-hidden rounded-lg bg-white/5 border border-white/10 hover:border-[#5842FF] transition-all cursor-pointer group"
+              >
+                <ImageWithFallback
+                  src={img}
+                  alt={`${product.name} detail ${idx + 2}`}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              </button>
+            ))}
           </div>
         </section>
       </div>
@@ -543,6 +572,99 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ productId,
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* 디테일 이미지 확대 보기 모달 */}
+      {isDetailImageViewOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
+          onClick={() => setIsDetailImageViewOpen(false)}
+        >
+          <button
+            onClick={() => setIsDetailImageViewOpen(false)}
+            className="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+          >
+            <X className="w-6 h-6 text-white" />
+          </button>
+
+          {/* 이전 이미지 버튼 */}
+          {((product.images && product.images.length > 1) || selectedDetailImageIndex > 0) && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                const detailImages = [
+                  'https://cdn-optimized.imweb.me/upload/S2020122915149b53b6c77/427cdb6116ac3.png?w=1536',
+                  ...(product.images?.slice(1) || [])
+                ];
+                setSelectedDetailImageIndex((prev) => 
+                  prev > 0 ? prev - 1 : detailImages.length - 1
+                );
+              }}
+              className="absolute left-4 z-10 w-12 h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+            >
+              <ChevronLeft className="w-6 h-6 text-white" />
+            </button>
+          )}
+
+          {/* 이미지 */}
+          <div className="max-w-7xl max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+            {selectedDetailImageIndex === 0 ? (
+              <img
+                src="https://cdn-optimized.imweb.me/upload/S2020122915149b53b6c77/427cdb6116ac3.png?w=1536"
+                alt={`${product.name} detail`}
+                className="max-w-full max-h-[90vh] object-contain"
+              />
+            ) : product.images && product.images[selectedDetailImageIndex] ? (
+              <ImageWithFallback
+                src={product.images[selectedDetailImageIndex]}
+                alt={`${product.name} detail ${selectedDetailImageIndex + 1}`}
+                className="max-w-full max-h-[90vh] object-contain"
+              />
+            ) : null}
+          </div>
+
+          {/* 다음 이미지 버튼 */}
+          {((product.images && product.images.length > 1) || selectedDetailImageIndex === 0) && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                const detailImages = [
+                  'https://cdn-optimized.imweb.me/upload/S2020122915149b53b6c77/427cdb6116ac3.png?w=1536',
+                  ...(product.images?.slice(1) || [])
+                ];
+                setSelectedDetailImageIndex((prev) => 
+                  prev < detailImages.length - 1 ? prev + 1 : 0
+                );
+              }}
+              className="absolute right-4 z-10 w-12 h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+            >
+              <ChevronRight className="w-6 h-6 text-white" />
+            </button>
+          )}
+
+          {/* 이미지 인디케이터 */}
+          {((product.images && product.images.length > 0) || selectedDetailImageIndex >= 0) && (
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 flex gap-2">
+              {[
+                'https://cdn-optimized.imweb.me/upload/S2020122915149b53b6c77/427cdb6116ac3.png?w=1536',
+                ...(product.images?.slice(1) || [])
+              ].map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedDetailImageIndex(idx);
+                  }}
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    selectedDetailImageIndex === idx
+                      ? 'bg-[#5842FF] w-8'
+                      : 'bg-white/30 hover:bg-white/50'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </motion.div>
   );
 };
