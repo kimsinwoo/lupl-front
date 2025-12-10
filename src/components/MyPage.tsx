@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useUser } from '../context/UserContext';
-import { useAdmin } from '../context/AdminContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { orderService } from '../services/order.service';
 import { reviewService } from '../services/review.service';
@@ -52,7 +51,6 @@ interface Order {
 
 export const MyPage = ({ onNavigate }: MyPageProps) => {
   const { user, favorites, updateProfile, logout } = useUser();
-  const { products } = useAdmin();
   const { t } = useLanguage();
 
   // 번역 폴백: 키 그대로 나오면 대체 문구 사용
@@ -66,13 +64,18 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
   const [favoriteProducts, setFavoriteProducts] = useState<any[]>([]);
   const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
-  
+  const prevFavoritesLengthRef = useRef<number>(0);
+
   // 리뷰 작성 관련 상태
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
-  const [selectedProductForReview, setSelectedProductForReview] = useState<{ productId: string; productName: string; orderId: string } | null>(null);
+  const [selectedProductForReview, setSelectedProductForReview] = useState<{
+    productId: string;
+    productName: string;
+    orderId: string;
+  } | null>(null);
   const [reviewRating, setReviewRating] = useState<number>(5);
   const [reviewComment, setReviewComment] = useState<string>('');
-  const [userReviews, setUserReviews] = useState<Map<string, boolean>>(new Map()); // productId -> hasReview
+  const [userReviews, setUserReviews] = useState<Map<string, boolean>>(new Map()); // productId-orderId -> hasReview
 
   const [formData, setFormData] = useState({
     name: user?.name ?? '',
@@ -94,19 +97,29 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
-  
+
+  // favorites가 변경될 때마다 목록 다시 로드 (무한 루프 방지)
+  useEffect(() => {
+    if (user && prevFavoritesLengthRef.current !== favorites.length) {
+      prevFavoritesLengthRef.current = favorites.length;
+      void loadFavorites();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [favorites.length, user]);
+
   const loadUserReviews = async () => {
     try {
-      // 주문에 포함된 제품들의 리뷰 작성 여부 확인
       const reviewsMap = new Map<string, boolean>();
       for (const order of userOrders) {
         if (order.status === 'delivered') {
           for (const item of order.items) {
             try {
               const response = await reviewService.getProductReviews(item.productId);
-              const reviews = Array.isArray(response?.data) ? response.data : (response?.data?.data || []);
-              const hasUserReview = reviews.some((review: any) => 
-                review.userId === user?.id && review.orderId === order.id
+              const reviews = Array.isArray(response?.data)
+                ? response.data
+                : response?.data?.data || [];
+              const hasUserReview = reviews.some(
+                (review: any) => review.userId === user?.id && review.orderId === order.id,
               );
               reviewsMap.set(`${item.productId}-${order.id}`, hasUserReview);
             } catch (error) {
@@ -120,7 +133,7 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
       console.error('Failed to load user reviews:', error);
     }
   };
-  
+
   useEffect(() => {
     if (userOrders.length > 0 && user) {
       void loadUserReviews();
@@ -128,117 +141,111 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userOrders, user]);
 
+  // ===== 여기부터 Favorites 응답 구조 수정 =====
   const loadFavorites = async () => {
     setIsLoadingFavorites(true);
     try {
       const { favoriteService } = await import('../services/favorite.service');
       const response = await favoriteService.getFavorites();
-      
-      console.log('📦 Favorites API Response:', response);
-      console.log('📦 Response type:', typeof response);
-      console.log('📦 Response.data:', response.data);
-      console.log('📦 Is array?', Array.isArray(response.data));
-      
-      // Extract products from favorites
-      const favoriteProductsData: any[] = [];
-      
-      // Handle different response structures
+      console.log('📦 Favorites API Response (raw):', response);
+
+      // Axios라면 response.data 안에 { success, data } 형태가 들어있음
+      const payload = response?.data ?? response;
+      console.log('📦 Favorites payload:', payload);
+
       let favoritesArray: any[] = [];
-      
-      if (Array.isArray(response)) {
-        // Response is directly an array
-        favoritesArray = response;
-      } else if (response.data) {
-        if (Array.isArray(response.data)) {
-          // Response is { data: [...favorites] }
-          favoritesArray = response.data;
-        } else if (response.data.data && Array.isArray(response.data.data)) {
-          // Response is { data: { data: [...favorites] } }
-          favoritesArray = response.data.data;
-        }
+
+      // 1) 일반적인 케이스: { success: true, data: [...] }
+      if (payload?.success && Array.isArray(payload.data)) {
+        favoritesArray = payload.data;
       }
-      
+      // 2) 혹시 data 안에 또 data가 있는 경우: { data: { success, data: [...] } }
+      else if (payload?.data?.success && Array.isArray(payload.data.data)) {
+        favoritesArray = payload.data.data;
+      }
+      // 3) data만 배열인 경우: { data: [...] }
+      else if (Array.isArray(payload?.data)) {
+        favoritesArray = payload.data;
+      }
+      // 4) 응답 자체가 배열인 경우: [...]
+      else if (Array.isArray(payload)) {
+        favoritesArray = payload;
+      }
+
       console.log('📦 Favorites array:', favoritesArray);
       console.log('📦 Favorites count:', favoritesArray.length);
-      
-      favoritesArray.forEach((fav: any, index: number) => {
-        console.log(`📦 Favorite ${index}:`, fav);
-        
-        if (fav.product) {
-          // Parse images
+
+      const favoriteProductsData: any[] = favoritesArray
+        .filter((fav: any) => !!fav?.product)
+        .map((fav: any, index: number) => {
+          const product = fav.product;
+
+          // 이미지 파싱
           let imageUrl = '';
           try {
-            if (Array.isArray(fav.product.images)) {
-              imageUrl = fav.product.images[0] || '';
-            } else if (typeof fav.product.images === 'string') {
-              const parsed = JSON.parse(fav.product.images);
+            if (Array.isArray(product.images) && product.images.length > 0) {
+              imageUrl = product.images[0];
+            } else if (typeof product.images === 'string') {
+              const parsed = JSON.parse(product.images);
               imageUrl = Array.isArray(parsed) ? parsed[0] : parsed;
             }
           } catch (e) {
-            console.warn('Failed to parse product images:', e);
+            console.warn(`⚠️ Failed to parse product images for favorite[${index}]`, e);
+            if (typeof product.images === 'string') {
+              imageUrl = product.images;
+            }
           }
 
-          favoriteProductsData.push({
-            id: fav.product.id,
-            name: fav.product.name,
-            price: fav.product.price,
+          return {
+            id: product.id,
+            name: product.name,
+            price: product.price ?? 0,
             image: imageUrl || 'https://via.placeholder.com/400',
-          });
-          console.log(`✅ Added product to favorites:`, fav.product.name);
-        } else {
-          console.warn(`⚠️ Favorite ${index} has no product:`, fav);
-        }
-      });
-      
+          };
+        });
+
       setFavoriteProducts(favoriteProductsData);
       console.log('✅ Favorites loaded:', favoriteProductsData.length, 'products');
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Failed to load favorites:', error);
-      console.error('❌ Error details:', (error as any)?.response?.data || (error as any)?.message);
+      console.error('❌ Error details:', error?.response?.data || error?.message);
       toast.error(tf('mypage.loadFavoritesError', 'Failed to load favorites'));
     } finally {
       setIsLoadingFavorites(false);
     }
   };
+  // ===== Favorites 수정 끝 =====
 
   const loadOrders = async () => {
     setIsLoadingOrders(true);
     try {
       const response = await orderService.getMyOrders();
       console.log('📦 Orders API Response:', response);
-      
-      // Axios 응답 구조 처리
+
       let responseData: any = response;
       if ((response as any).data) {
         responseData = (response as any).data;
       }
-      
+
       console.log('📦 Response Data:', responseData);
-      
-      // 백엔드 응답 형식: { success: true, data: orders[] }
+
       let ordersArray: any[] = [];
-      
+
       if (responseData?.success && responseData?.data) {
-        // data가 배열인 경우
         if (Array.isArray(responseData.data)) {
           ordersArray = responseData.data;
-        } 
-        // data가 객체이고 orders 속성이 있는 경우
-        else if (responseData.data.orders && Array.isArray(responseData.data.orders)) {
+        } else if (responseData.data.orders && Array.isArray(responseData.data.orders)) {
           ordersArray = responseData.data.orders;
         }
-      } 
-      // 직접 배열인 경우
-      else if (Array.isArray(responseData)) {
+      } else if (Array.isArray(responseData)) {
         ordersArray = responseData;
       }
-      
+
       console.log('📦 Parsed Orders Array:', ordersArray);
       console.log('📦 Orders Count:', ordersArray.length);
 
       const orders: Order[] = ordersArray.map((order: any): Order => {
         const items: OrderItem[] = (order.items ?? []).map((item: any): OrderItem => {
-          // 이미지 파싱
           let productImages: string[] = [];
           if (item.product?.images) {
             if (Array.isArray(item.product.images)) {
@@ -252,7 +259,7 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
               }
             }
           }
-          
+
           return {
             productId: String(item.productId || item.product?.id || ''),
             productName: item.product?.name || item.productName || 'Unknown Product',
@@ -263,7 +270,7 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
             price: Number(item.price ?? item.product?.price ?? 0),
           };
         });
-        
+
         return {
           id: String(order.id),
           orderNumber: order.orderNumber || order.order_number || `ORDER-${order.id}`,
@@ -273,13 +280,33 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
           status: (order.status || 'pending') as OrderStatus,
           paymentStatus: order.paymentStatus || order.payment_status || 'pending',
           paymentMethod: order.paymentMethod || order.payment_method || '',
-          items: items,
+          items,
           shippingAddress: {
-            street: order.shippingAddress1 || order.shipping_address1 || order.shippingAddress?.street || '',
-            city: order.shippingCity || order.shipping_city || order.shippingAddress?.city || '',
-            state: order.shippingState || order.shipping_state || order.shippingAddress?.state || '',
-            zipCode: order.shippingZip || order.shipping_zip || order.shippingAddress?.zipCode || '',
-            country: order.shippingCountry || order.shipping_country || order.shippingAddress?.country || 'Korea',
+            street:
+              order.shippingAddress1 ||
+              order.shipping_address1 ||
+              order.shippingAddress?.street ||
+              '',
+            city:
+              order.shippingCity ||
+              order.shipping_city ||
+              order.shippingAddress?.city ||
+              '',
+            state:
+              order.shippingState ||
+              order.shipping_state ||
+              order.shippingAddress?.state ||
+              '',
+            zipCode:
+              order.shippingZip ||
+              order.shipping_zip ||
+              order.shippingAddress?.zipCode ||
+              '',
+            country:
+              order.shippingCountry ||
+              order.shipping_country ||
+              order.shippingAddress?.country ||
+              'Korea',
           },
         };
       });
@@ -359,22 +386,22 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
         return 'bg-white/10 text-white/70 ring-1 ring-inset ring-white/20';
     }
   };
-  
+
   const handleOpenReviewDialog = (productId: string, productName: string, orderId: string) => {
     setSelectedProductForReview({ productId, productName, orderId });
     setReviewRating(5);
     setReviewComment('');
     setIsReviewDialogOpen(true);
   };
-  
+
   const handleSubmitReview = async () => {
     if (!selectedProductForReview) return;
-    
+
     if (!reviewComment.trim()) {
       toast.error('리뷰 내용을 입력해주세요');
       return;
     }
-    
+
     try {
       await reviewService.createReview({
         productId: selectedProductForReview.productId,
@@ -382,7 +409,7 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
         rating: reviewRating,
         comment: reviewComment,
       });
-      
+
       toast.success('리뷰가 작성되었습니다');
       setIsReviewDialogOpen(false);
       setSelectedProductForReview(null);
@@ -394,11 +421,10 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
       toast.error(error.response?.data?.message || '리뷰 작성에 실패했습니다');
     }
   };
-  
+
   const hasReviewed = (productId: string, orderId: string) => {
     return userReviews.get(`${productId}-${orderId}`) || false;
   };
-
 
   return (
     <div className="min-h-screen bg-black pt-24 sm:pt-32 pb-16 sm:pb-24 text-white">
@@ -499,7 +525,7 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
-                        className="bg-white/5 border-white/20 text-white placeholder:text-white/30 focus-visible:ring-2 focus-visible:ring-[#5842FF]/50"
+                        className="bg白/5 border-white/20 text-white placeholder:text-white/30 focus-visible:ring-2 focus-visible:ring-[#5842FF]/50"
                         autoComplete="name"
                       />
                     ) : (
@@ -662,7 +688,7 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
               </div>
             ) : (
               <div className="space-y-6">
-                {userOrders.map((order) => (
+                {userOrders.map(order => (
                   <div
                     key={order.id}
                     className="bg-white/5 text-white rounded-xl p-6 shadow-lg border border-white/10 ring-1 ring-white/5"
@@ -676,7 +702,9 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
                           {new Date(order.date).toLocaleDateString()}
                         </p>
                       </div>
-                      <Badge className={`${getStatusColor(order.status)} rounded px-3 py-1 text-xs font-semibold`}>
+                      <Badge
+                        className={`${getStatusColor(order.status)} rounded px-3 py-1 text-xs font-semibold`}
+                      >
                         {String(order.status).toUpperCase()}
                       </Badge>
                     </div>
@@ -687,15 +715,16 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
                           key={idx}
                           className="flex items-center gap-4 mb-3 pb-3 border-b border-white/10 last:border-b-0"
                         >
-                          {/* 이미지 */}
-                          <div className="flex-shrink-0 flex items-center justify-center overflow-hidden rounded-lg bg-white/5" style={{ width: '100px', height: '100px' }}>
+                          <div
+                            className="flex-shrink-0 flex items-center justify-center overflow-hidden rounded-lg bg-white/5"
+                            style={{ width: '100px', height: '100px' }}
+                          >
                             <img
-                              src={item.productImage ? item.productImage : '/placeholder.svg'}
+                              src={item.productImage || '/placeholder.svg'}
                               alt={item.productName}
                               className="w-full h-full object-cover"
                             />
                           </div>
-                          {/* 이름 및 옵션 */}
                           <div className="flex-1 min-w-0 flex flex-col justify-center">
                             <h3 className="text-white text-base font-semibold leading-tight break-words">
                               {item.productName}
@@ -706,7 +735,7 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
                             <span className="text-white/60 text-xs mt-1">
                               {tf('mypage.quantity', 'Qty')}: {item.quantity}
                             </span>
-                            {/* 리뷰 작성 버튼 - DELIVERED 상태일 때만 표시 */}
+
                             {order.status === 'delivered' && (
                               <div className="mt-2">
                                 {hasReviewed(item.productId, order.id) ? (
@@ -718,7 +747,13 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
                                     size="sm"
                                     variant="outline"
                                     className="text-xs h-7 bg-[#5842FF] border-[#5842FF] text-white hover:bg-[#5842FF]/80"
-                                    onClick={() => handleOpenReviewDialog(item.productId, item.productName, order.id)}
+                                    onClick={() =>
+                                      handleOpenReviewDialog(
+                                        item.productId,
+                                        item.productName,
+                                        order.id,
+                                      )
+                                    }
                                   >
                                     <Star className="w-3 h-3 mr-1" />
                                     리뷰 작성
@@ -727,10 +762,12 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
                               </div>
                             )}
                           </div>
-                           {/* 세부 가격 */}
-                           <span className="text-white text-sm sm:text-base font-semibold tabular-nums" style={{ whiteSpace: 'nowrap' }}>
-                             ₩{Number(item.price ?? 0).toLocaleString('ko-KR')}
-                           </span>
+                          <span
+                            className="text-white text-sm sm:text-base font-semibold tabular-nums"
+                            style={{ whiteSpace: 'nowrap' }}
+                          >
+                            ₩{Number(item.price ?? 0).toLocaleString('ko-KR')}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -776,7 +813,7 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {favoriteProducts.map((product) => (
+                {favoriteProducts.map(product => (
                   <ProductCard key={product.id} product={product} onNavigate={onNavigate} />
                 ))}
               </div>
@@ -784,7 +821,7 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
           </TabsContent>
         </Tabs>
       </div>
-      
+
       {/* 리뷰 작성 다이얼로그 */}
       <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
         <DialogContent className="bg-white/10 border-white/20 text-white w-[512px] max-w-[95vw] rounded-2xl shadow-lg border ring-1 ring-white/5">
@@ -795,11 +832,10 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-6 mt-6">
-            {/* 별점 선택 */}
             <div>
               <Label className="text-white mb-3 block text-sm tracking-wide">별점</Label>
               <div className="flex gap-2">
-                {[1, 2, 3, 4, 5].map((rating) => (
+                {[1, 2, 3, 4, 5].map(rating => (
                   <button
                     key={rating}
                     type="button"
@@ -817,22 +853,23 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
                 ))}
               </div>
             </div>
-            
-            {/* 리뷰 내용 */}
+
             <div>
-              <Label htmlFor="review-comment" className="text-white mb-3 block text-sm tracking-wide">
+              <Label
+                htmlFor="review-comment"
+                className="text-white mb-3 block text-sm tracking-wide"
+              >
                 리뷰 내용
               </Label>
               <Textarea
                 id="review-comment"
                 value={reviewComment}
-                onChange={(e) => setReviewComment(e.target.value)}
+                onChange={e => setReviewComment(e.target.value)}
                 placeholder="리뷰를 작성해주세요"
                 className="bg-white/5 border-white/20 text-white placeholder:text-white/40 min-h-[120px] focus-visible:ring-2 focus-visible:ring-[#5842FF]/50"
               />
             </div>
-            
-            {/* 버튼 */}
+
             <div className="flex gap-3 pt-2">
               <Button
                 onClick={handleSubmitReview}

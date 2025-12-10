@@ -77,14 +77,24 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const response = await favoriteService.getFavorites();
           
           // Extract product IDs from favorites
+          // 백엔드는 { success: true, data: favorites } 형태로 응답
+          // api.get()은 이미 response.data를 반환하므로 response는 { success: true, data: favorites }
           const favoriteIds: string[] = [];
-          if (response.data && Array.isArray(response.data)) {
-            response.data.forEach((fav: any) => {
-              if (fav.productId) {
-                favoriteIds.push(fav.productId);
-              }
-            });
+          
+          let favoritesArray: any[] = [];
+          if (response.success && response.data && Array.isArray(response.data)) {
+            favoritesArray = response.data;
+          } else if (Array.isArray(response)) {
+            favoritesArray = response;
+          } else if (Array.isArray(response.data)) {
+            favoritesArray = response.data;
           }
+          
+          favoritesArray.forEach((fav: any) => {
+            if (fav.productId) {
+              favoriteIds.push(fav.productId);
+            }
+          });
           
           setFavorites(favoriteIds);
           console.log('✅ Favorites loaded:', favoriteIds);
