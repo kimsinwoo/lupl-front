@@ -1,0 +1,1 @@
+import{a as t}from"./index-BUaYesWW.js";const r={getCategories:async()=>t.get("/portfolio/categories"),getCategoryItems:async e=>t.get(`/portfolio/categories/${e}`),getAllItems:async()=>t.get("/portfolio/items"),getItemById:async e=>t.get(`/portfolio/items/${e}`)};export{r as p};
