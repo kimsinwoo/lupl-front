@@ -223,26 +223,57 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateProfile = async (userData: Partial<User>) => {
-    if (!user) return;
+    if (!user) {
+      console.error('❌ Cannot update profile: user is null');
+      throw new Error('User is not logged in');
+    }
 
     try {
+      console.log('📝 Updating profile with data:', userData);
       const { userService } = await import('../services/user.service');
       const response = await userService.updateProfile(userData as any);
       
+      console.log('📝 Profile update response:', response);
+      
       // 응답 구조 처리
       let userDataResponse = response;
-      if ((response as any).data?.data) {
+      
+      // api.put는 response.data를 반환하므로, 이미 파싱된 상태
+      // 구조 1: { success: true, data: { ...user }, message: '...' }
+      if (response && response.success && response.data) {
+        userDataResponse = response;
+      }
+      // 구조 2: { data: { success: true, data: { ...user } } } - 중첩된 경우
+      else if ((response as any).data?.data) {
         userDataResponse = (response as any).data;
       }
+      // 구조 3: data 자체가 user 객체인 경우
+      else if (response && (response as any).id) {
+        userDataResponse = {
+          success: true,
+          data: response,
+          message: 'Profile updated successfully'
+        };
+      }
       
-      if (userDataResponse.success && userDataResponse.data) {
+      console.log('📝 Processed userDataResponse:', userDataResponse);
+      
+      if (userDataResponse && userDataResponse.success && userDataResponse.data) {
         const updatedUser = userDataResponse.data;
         setUser(updatedUser);
         localStorage.setItem('user', JSON.stringify(updatedUser));
-        console.log('✅ Profile updated successfully');
+        console.log('✅ Profile updated successfully:', updatedUser);
+      } else {
+        console.error('❌ Invalid response structure:', userDataResponse);
+        throw new Error('Invalid response from server');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Failed to update profile:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
       throw error;
     }
   };

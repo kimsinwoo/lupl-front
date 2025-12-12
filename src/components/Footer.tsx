@@ -124,6 +124,36 @@ export function Footer() {
           </div>
         </div>
 
+        {/* Company Information */}
+        <div className="pt-8 border-t border-white/10 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-white/60">
+            <div>
+              <span className="font-semibold text-white/80">{t['footer.company.name']}: </span>
+              <span>{t['footer.company.name.value']}</span>
+            </div>
+            <div>
+              <span className="font-semibold text-white/80">{t['footer.company.ceo']}: </span>
+              <span>{t['footer.company.ceo.value']}</span>
+            </div>
+            <div>
+              <span className="font-semibold text-white/80">{t['footer.company.businessNumber']}: </span>
+              <span>{t['footer.company.businessNumber.value']}</span>
+            </div>
+            <div>
+              <span className="font-semibold text-white/80">{t['footer.company.mailOrderNumber']}: </span>
+              <span>{t['footer.company.mailOrderNumber.value']}</span>
+            </div>
+            <div>
+              <span className="font-semibold text-white/80">{t['footer.company.address']}: </span>
+              <span>{t['footer.company.address.value']}</span>
+            </div>
+            <div>
+              <span className="font-semibold text-white/80">{t['footer.company.phone']}: </span>
+              <span>{t['footer.company.phone.value']}</span>
+            </div>
+          </div>
+        </div>
+
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-white/10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">

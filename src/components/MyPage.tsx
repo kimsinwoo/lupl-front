@@ -346,6 +346,7 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
 
   const handleSaveProfile = async () => {
     try {
+      console.log('💾 Saving profile with data:', formData);
       await updateProfile({
         name: formData.name,
         phone: formData.phone,
@@ -359,8 +360,10 @@ export const MyPage = ({ onNavigate }: MyPageProps) => {
       });
       setIsEditing(false);
       toast.success(tf('mypage.profileUpdated', 'Profile updated successfully'));
-    } catch {
-      toast.error('프로필 업데이트에 실패했습니다');
+    } catch (error: any) {
+      console.error('❌ Profile update error in MyPage:', error);
+      const errorMessage = error.response?.data?.message || error.message || '프로필 업데이트에 실패했습니다';
+      toast.error(errorMessage);
     }
   };
 

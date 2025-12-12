@@ -146,30 +146,74 @@ export const CheckoutPage = ({ onNavigate }: CheckoutPageProps) => {
   
   // Step 3으로 이동하면 결제 위젯 초기화
   useEffect(() => {
+    let widgetsInstance: any = null;
+    
     const initPaymentWidget = async () => {
+      // 이전 위젯이 있으면 먼저 정리
+      if (paymentWidgets) {
+        try {
+          (paymentWidgets as any).unmount?.('#payment-method');
+          (paymentWidgets as any).unmount?.('#agreement');
+        } catch (e) {
+          console.warn('Failed to unmount previous widgets:', e);
+        }
+        setPaymentWidgets(null);
+      }
+      
       if (step === 3 && paymentMethod === 'card' && window.TossPayments) {
         try {
+          // DOM 요소가 준비될 때까지 대기 (최대 1초)
+          let retries = 0;
+          while (retries < 10) {
+            const paymentMethodEl = document.getElementById('payment-method');
+            const agreementEl = document.getElementById('agreement');
+            if (paymentMethodEl && agreementEl) {
+              break;
+            }
+            await new Promise(resolve => setTimeout(resolve, 100));
+            retries++;
+          }
+          
+          const paymentMethodEl = document.getElementById('payment-method');
+          const agreementEl = document.getElementById('agreement');
+          
+          if (!paymentMethodEl || !agreementEl) {
+            console.error('❌ Payment widget DOM elements not found');
+            return;
+          }
+          
           const clientKey = (import.meta as any).env?.VITE_TOSS_CLIENT_KEY || 'test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm';
           const customerKey = window.TossPayments.ANONYMOUS;
           const tossPayments = window.TossPayments(clientKey);
-          const widgets = tossPayments.widgets({ customerKey });
+          widgetsInstance = tossPayments.widgets({ customerKey });
           
           // 금액 설정
-          await widgets.setAmount({
+          await widgetsInstance.setAmount({
             currency: 'KRW',
             value: totalAmount,
           });
           
           // UI 렌더링
           await Promise.all([
-            widgets.renderPaymentMethods({ selector: '#payment-method', variantKey: 'DEFAULT' }),
-            widgets.renderAgreement({ selector: '#agreement', variantKey: 'AGREEMENT' })
+            widgetsInstance.renderPaymentMethods({ selector: '#payment-method', variantKey: 'DEFAULT' }),
+            widgetsInstance.renderAgreement({ selector: '#agreement', variantKey: 'AGREEMENT' })
           ]);
           
-          setPaymentWidgets(widgets);
+          setPaymentWidgets(widgetsInstance);
           console.log('✅ Payment widgets initialized');
         } catch (error) {
           console.error('❌ Failed to initialize payment widgets:', error);
+        }
+      } else {
+        // step이 3이 아니거나 card가 아니면 위젯 정리
+        if (paymentWidgets) {
+          try {
+            (paymentWidgets as any).unmount?.('#payment-method');
+            (paymentWidgets as any).unmount?.('#agreement');
+          } catch (e) {
+            console.warn('Failed to unmount widgets:', e);
+          }
+          setPaymentWidgets(null);
         }
       }
     };
@@ -178,9 +222,13 @@ export const CheckoutPage = ({ onNavigate }: CheckoutPageProps) => {
     
     // Cleanup
     return () => {
-      if (paymentWidgets) {
-        paymentWidgets.unmount?.('#payment-method');
-        paymentWidgets.unmount?.('#agreement');
+      if (widgetsInstance) {
+        try {
+          widgetsInstance.unmount?.('#payment-method');
+          widgetsInstance.unmount?.('#agreement');
+        } catch (e) {
+          console.warn('Failed to unmount widgets in cleanup:', e);
+        }
       }
     };
   }, [step, paymentMethod, totalAmount]);

@@ -71,9 +71,31 @@ export const authService = {
     // 세션 쿠키가 자동으로 설정되므로 user 정보만 저장
     // JWT 토큰도 저장 (백엔드에서 반환하는 경우)
     if (userData) {
+      // address 필드 확인
+      console.log('📍 User address data:', {
+        hasAddress: !!userData.address,
+        address: userData.address,
+        addressType: typeof userData.address
+      });
+      
       localStorage.setItem('user', JSON.stringify(userData));
-      console.log('✅ User saved in auth service:', userData);
-      console.log('✅ localStorage user:', localStorage.getItem('user'));
+      console.log('✅ User saved in auth service:', {
+        id: userData.id,
+        email: userData.email,
+        name: userData.name,
+        phone: userData.phone,
+        hasAddress: !!userData.address,
+        address: userData.address
+      });
+      
+      // 저장된 데이터 확인
+      const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      console.log('✅ Saved user from localStorage:', {
+        id: savedUser.id,
+        email: savedUser.email,
+        hasAddress: !!savedUser.address,
+        address: savedUser.address
+      });
       
       // 토큰이 응답에 포함되어 있으면 저장
       // 백엔드 응답 구조: { success: true, data: { user: {...}, token: "..." }, message: "..." }
